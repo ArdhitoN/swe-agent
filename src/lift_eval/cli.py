@@ -48,5 +48,38 @@ def check_images(pull: bool = typer.Option(False, help="Download missing images,
         print(r)
 
 
+
+def _bug_list(bugs: str) -> list[str]:
+    from lift_eval.tasks import TASKS_DEV, TASKS_TEST
+
+    if bugs == "test":
+        return TASKS_TEST.read_text().split()
+    if bugs == "dev":
+        return TASKS_DEV.read_text().split()
+    return bugs.split(",")
+
+
+@app.command()
+def run_baseline(
+    bugs: str = typer.Option("test", help="'test', 'dev', or comma-separated bug IDs"),
+    runs: int = typer.Option(0, help="Number of runs (0 = the number in the config)"),
+    first_run: int = typer.Option(1, help="Number of the first run, e.g. 2 to add runs 2..N"),
+    keep_images: bool = typer.Option(False, help="Don't delete images afterwards"),
+    expected_cost: float = typer.Option(0.5, help="Refuse to start a run if spent + this would pass the cap"),
+):
+    """Baseline (Arm A): unmodified mini-swe-agent, graded with the official harness, one bug at a time."""
+    from lift_eval.config import load_experiment
+    from lift_eval.runners.run_baseline import run_baseline as _run, run_dir
+    from lift_eval.runners.schedule import run_schedule
+
+    cfg = load_experiment()
+    n = runs or cfg["runs"]["A"]
+    names = [f"run_{k}" for k in range(first_run, first_run + n)]
+    run_schedule(
+        cfg, _bug_list(bugs), names, _run, lambda r, i: run_dir("A", r, i), expected_cost, keep_images
+    )
+
+
+
 if __name__ == "__main__":
     app()
