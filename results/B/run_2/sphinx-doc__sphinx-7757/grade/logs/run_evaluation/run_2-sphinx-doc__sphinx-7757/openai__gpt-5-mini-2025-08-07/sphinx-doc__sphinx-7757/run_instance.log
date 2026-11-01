@@ -1,0 +1,92 @@
+2026-11-01 17:37:15,348 - INFO - Creating container for sphinx-doc__sphinx-7757...
+2026-11-01 17:37:15,645 - INFO - Container for sphinx-doc__sphinx-7757 created: 8847249adb24c1a6354c2daf8238cff124b2519e28cb1c8aa6550e0e74858534
+2026-11-01 17:37:16,110 - INFO - Container for sphinx-doc__sphinx-7757 started: 8847249adb24c1a6354c2daf8238cff124b2519e28cb1c8aa6550e0e74858534
+2026-11-01 17:37:16,114 - INFO - Intermediate patch for sphinx-doc__sphinx-7757 written to logs/run_evaluation/run_2-sphinx-doc__sphinx-7757/openai__gpt-5-mini-2025-08-07/sphinx-doc__sphinx-7757/patch.diff, now applying to container...
+2026-11-01 17:37:16,755 - INFO - >>>>> Applied Patch:
+Checking patch sphinx/util/inspect.py...
+Applied patch sphinx/util/inspect.py cleanly.
+
+2026-11-01 17:37:18,606 - INFO - Git diff before:
+diff --git a/sphinx/util/inspect.py b/sphinx/util/inspect.py
+index 15f0d66e2..1e0aa75db 100644
+--- a/sphinx/util/inspect.py
++++ b/sphinx/util/inspect.py
+@@ -520,17 +520,25 @@ def signature_from_str(signature: str) -> inspect.Signature:
+     args = definition.args
+     params = []
+ 
++    # prepare defaults for positional parameters (including posonlyargs)
++    defaults = list(args.defaults)
++    positionals = len(args.args)
++    posonly_count = 0
+     if hasattr(args, "posonlyargs"):
+-        for arg in args.posonlyargs:  # type: ignore
++        posonly_count = len(args.posonlyargs)  # type: ignore
++        positionals += posonly_count
++    for _ in range(len(defaults), positionals):
++        defaults.insert(0, None)
++
++    if hasattr(args, "posonlyargs"):
++        for i, arg in enumerate(args.posonlyargs):  # type: ignore
++            default = ast_unparse(defaults[i]) or Parameter.empty
+             annotation = ast_unparse(arg.annotation) or Parameter.empty
+             params.append(Parameter(arg.arg, Parameter.POSITIONAL_ONLY,
+-                                    annotation=annotation))
++                                    default=default, annotation=annotation))
+ 
+     for i, arg in enumerate(args.args):
+-        if len(args.args) - i <= len(args.defaults):
+-            default = ast_unparse(args.defaults[-len(args.args) + i])
+-        else:
+-            default = Parameter.empty
++        default = ast_unparse(defaults[i + posonly_count]) or Parameter.empty
+ 
+         annotation = ast_unparse(arg.annotation) or Parameter.empty
+         params.append(Parameter(arg.arg, Parameter.POSITIONAL_OR_KEYWORD,
+2026-11-01 17:37:18,607 - INFO - Eval script for sphinx-doc__sphinx-7757 written to logs/run_evaluation/run_2-sphinx-doc__sphinx-7757/openai__gpt-5-mini-2025-08-07/sphinx-doc__sphinx-7757/eval.sh; copying to container...
+2026-11-01 17:37:27,759 - INFO - Test runtime: 8.99 seconds
+2026-11-01 17:37:27,761 - INFO - Test output for sphinx-doc__sphinx-7757 written to logs/run_evaluation/run_2-sphinx-doc__sphinx-7757/openai__gpt-5-mini-2025-08-07/sphinx-doc__sphinx-7757/test_output.txt
+2026-11-01 17:37:27,889 - INFO - Git diff after:
+diff --git a/sphinx/util/inspect.py b/sphinx/util/inspect.py
+index 15f0d66e2..1e0aa75db 100644
+--- a/sphinx/util/inspect.py
++++ b/sphinx/util/inspect.py
+@@ -520,17 +520,25 @@ def signature_from_str(signature: str) -> inspect.Signature:
+     args = definition.args
+     params = []
+ 
++    # prepare defaults for positional parameters (including posonlyargs)
++    defaults = list(args.defaults)
++    positionals = len(args.args)
++    posonly_count = 0
+     if hasattr(args, "posonlyargs"):
+-        for arg in args.posonlyargs:  # type: ignore
++        posonly_count = len(args.posonlyargs)  # type: ignore
++        positionals += posonly_count
++    for _ in range(len(defaults), positionals):
++        defaults.insert(0, None)
++
++    if hasattr(args, "posonlyargs"):
++        for i, arg in enumerate(args.posonlyargs):  # type: ignore
++            default = ast_unparse(defaults[i]) or Parameter.empty
+             annotation = ast_unparse(arg.annotation) or Parameter.empty
+             params.append(Parameter(arg.arg, Parameter.POSITIONAL_ONLY,
+-                                    annotation=annotation))
++                                    default=default, annotation=annotation))
+ 
+     for i, arg in enumerate(args.args):
+-        if len(args.args) - i <= len(args.defaults):
+-            default = ast_unparse(args.defaults[-len(args.args) + i])
+-        else:
+-            default = Parameter.empty
++        default = ast_unparse(defaults[i + posonly_count]) or Parameter.empty
+ 
+         annotation = ast_unparse(arg.annotation) or Parameter.empty
+         params.append(Parameter(arg.arg, Parameter.POSITIONAL_OR_KEYWORD,
+2026-11-01 17:37:27,889 - INFO - Grading answer for sphinx-doc__sphinx-7757...
+2026-11-01 17:37:27,890 - INFO - report: {'sphinx-doc__sphinx-7757': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'infra_failure': False, 'tests_status': {'FAIL_TO_PASS': {'success': ['tests/test_util_inspect.py::test_signature_from_str_positionaly_only_args'], 'failure': []}, 'PASS_TO_PASS': {'success': ['tests/test_util_inspect.py::test_signature', 'tests/test_util_inspect.py::test_signature_partial', 'tests/test_util_inspect.py::test_signature_methods', 'tests/test_util_inspect.py::test_signature_partialmethod', 'tests/test_util_inspect.py::test_signature_annotations', 'tests/test_util_inspect.py::test_signature_annotations_py38', 'tests/test_util_inspect.py::test_signature_from_str_basic', 'tests/test_util_inspect.py::test_signature_from_str_default_values', 'tests/test_util_inspect.py::test_signature_from_str_annotations', 'tests/test_util_inspect.py::test_signature_from_str_complex_annotations', 'tests/test_util_inspect.py::test_signature_from_str_kwonly_args', 'tests/test_util_inspect.py::test_signature_from_str_invalid', 'tests/test_util_inspect.py::test_safe_getattr_with_default', 'tests/test_util_inspect.py::test_safe_getattr_with_exception', 'tests/test_util_inspect.py::test_safe_getattr_with_property_exception', 'tests/test_util_inspect.py::test_safe_getattr_with___dict___override', 'tests/test_util_inspect.py::test_dictionary_sorting', 'tests/test_util_inspect.py::test_set_sorting', 'tests/test_util_inspect.py::test_set_sorting_fallback', 'tests/test_util_inspect.py::test_frozenset_sorting', 'tests/test_util_inspect.py::test_frozenset_sorting_fallback', 'tests/test_util_inspect.py::test_dict_customtype', 'tests/test_util_inspect.py::test_isclassmethod', 'tests/test_util_inspect.py::test_isstaticmethod', 'tests/test_util_inspect.py::test_iscoroutinefunction', 'tests/test_util_inspect.py::test_isfunction', 'tests/test_util_inspect.py::test_isbuiltin', 'tests/test_util_inspect.py::test_isdescriptor', 'tests/test_util_inspect.py::test_isattributedescriptor', 'tests/test_util_inspect.py::test_isproperty', 'tests/test_util_inspect.py::test_unpartial', 'tests/test_util_inspect.py::test_getdoc_inherited_decorated_method', 'tests/test_util_inspect.py::test_is_builtin_class_method'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sphinx-doc__sphinx-7757: resolved: True
+2026-11-01 17:37:27,891 - INFO - Attempting to stop container sweb.eval.sphinx-doc__sphinx-7757.run_2-sphinx-doc__sphinx-7757...
+2026-11-01 17:37:43,210 - INFO - Container sweb.eval.sphinx-doc__sphinx-7757.run_2-sphinx-doc__sphinx-7757 stopped successfully.
+2026-11-01 17:37:43,211 - INFO - Attempting to remove container sweb.eval.sphinx-doc__sphinx-7757.run_2-sphinx-doc__sphinx-7757...
+2026-11-01 17:37:43,313 - INFO - Container sweb.eval.sphinx-doc__sphinx-7757.run_2-sphinx-doc__sphinx-7757 removed successfully.

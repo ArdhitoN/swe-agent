@@ -1,0 +1,29 @@
+{
+  "chosen": "attempt_1",
+  "reason": "verified; passes 0 pooled reproductions; group of 2 with identical results",
+  "pooled_reproductions": 2,
+  "evaluations": [
+    {
+      "name": "attempt_1",
+      "applies": true,
+      "repro_passes": [
+        false,
+        false
+      ],
+      "regressions": [],
+      "patch_lines": 4,
+      "eligible": true
+    },
+    {
+      "name": "attempt_2",
+      "applies": true,
+      "repro_passes": [
+        false,
+        false
+      ],
+      "regressions": [],
+      "patch_lines": 5,
+      "eligible": true
+    }
+  ]
+}

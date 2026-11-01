@@ -1,0 +1,49 @@
+{
+  "chosen": "baseline_run_4",
+  "reason": "verified; passes 2 pooled reproductions; group of 1 with identical results",
+  "pooled_reproductions": 3,
+  "evaluations": [
+    {
+      "name": "baseline_run_2",
+      "applies": true,
+      "repro_passes": [
+        true,
+        true,
+        true
+      ],
+      "regressions": [
+        "migrations.test_writer.WriterTests.test_serialize_class_based_validators",
+        "migrations.test_writer.WriterTests.test_serialize_enums"
+      ],
+      "patch_lines": 11,
+      "eligible": false
+    },
+    {
+      "name": "baseline_run_3",
+      "applies": true,
+      "repro_passes": [
+        true,
+        true,
+        true
+      ],
+      "regressions": [
+        "migrations.test_writer.WriterTests.test_serialize_class_based_validators",
+        "migrations.test_writer.WriterTests.test_serialize_enums"
+      ],
+      "patch_lines": 10,
+      "eligible": false
+    },
+    {
+      "name": "baseline_run_4",
+      "applies": true,
+      "repro_passes": [
+        true,
+        true,
+        false
+      ],
+      "regressions": [],
+      "patch_lines": 13,
+      "eligible": true
+    }
+  ]
+}

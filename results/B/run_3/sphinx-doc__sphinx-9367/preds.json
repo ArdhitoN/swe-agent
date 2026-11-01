@@ -1,0 +1,7 @@
+{
+  "sphinx-doc__sphinx-9367": {
+    "model_name_or_path": "openai/gpt-5-mini-2025-08-07",
+    "instance_id": "sphinx-doc__sphinx-9367",
+    "model_patch": "diff --git a/sphinx/pycode/ast.py b/sphinx/pycode/ast.py\nindex f541ec0a9..a820771db 100644\n--- a/sphinx/pycode/ast.py\n+++ b/sphinx/pycode/ast.py\n@@ -214,7 +214,10 @@ class _UnparseVisitor(ast.NodeVisitor):\n \n     def visit_Tuple(self, node: ast.Tuple) -> str:\n         if node.elts:\n-            return \"(\" + \", \".join(self.visit(e) for e in node.elts) + \")\"\n+            s = \", \".join(self.visit(e) for e in node.elts)\n+            if len(node.elts) == 1:\n+                s += \",\"\n+            return \"(\" + s + \")\"\n         else:\n             return \"()\"\n \n"
+  }
+}

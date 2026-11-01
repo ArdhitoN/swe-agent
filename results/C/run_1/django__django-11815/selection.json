@@ -1,0 +1,52 @@
+{
+  "chosen": "baseline_run_3",
+  "reason": "UNVERIFIED (every candidate had new test failures); passes 1 pooled reproductions; group of 2 with identical results",
+  "pooled_reproductions": 3,
+  "evaluations": [
+    {
+      "name": "baseline_run_1",
+      "applies": true,
+      "repro_passes": [
+        false,
+        false,
+        false
+      ],
+      "regressions": [
+        "migrations.test_writer.WriterTests.test_serialize_class_based_validators",
+        "migrations.test_writer.WriterTests.test_serialize_enums"
+      ],
+      "patch_lines": 12,
+      "eligible": false
+    },
+    {
+      "name": "baseline_run_2",
+      "applies": true,
+      "repro_passes": [
+        false,
+        false,
+        true
+      ],
+      "regressions": [
+        "migrations.test_writer.WriterTests.test_serialize_class_based_validators",
+        "migrations.test_writer.WriterTests.test_serialize_enums"
+      ],
+      "patch_lines": 11,
+      "eligible": false
+    },
+    {
+      "name": "baseline_run_3",
+      "applies": true,
+      "repro_passes": [
+        false,
+        false,
+        true
+      ],
+      "regressions": [
+        "migrations.test_writer.WriterTests.test_serialize_class_based_validators",
+        "migrations.test_writer.WriterTests.test_serialize_enums"
+      ],
+      "patch_lines": 10,
+      "eligible": false
+    }
+  ]
+}

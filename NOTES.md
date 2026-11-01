@@ -2,6 +2,18 @@
 
 Facts about the environment that affect how the experiment runs. Newest first.
 
+## API (2026-11-01)
+
+- **One prompt was flagged by OpenAI** as possibly violating its usage policy, during our agent's runs
+  on `sphinx-doc__sphinx-7757`. mini-swe-agent's model client retried the request automatically and
+  the runs continued (all 3 runs of that bug were resolved). This is outside our control and is
+  recorded here for completeness.
+- **litellm 1.106 needs the `mcp` package whenever a request includes tools.** Without it every agent,
+  baseline included, crashed before sending its first request ($0 spent). `mcp` is a pinned dependency.
+  This is an environment fix and identical for every agent.
+- **The flex tier works** for `gpt-5-mini-2025-08-07` (checked with one tiny call, $0.000012), and
+  litellm's cost tracking applies the flex price.
+
 ## Docker images (2026-11-01)
 
 **Each SWE-bench image is about 4 GB, and images share almost nothing** (117 MB shared,
@@ -19,13 +31,15 @@ Importing Django inside a container takes under 1 second, so emulation is fast e
 
 ## Leak checks on the images
 
-Checked so far (full results in `reports/image_checks.json`; every image is checked when it
-is first downloaded):
+All 11 images used (8 test bugs, 3 dev bugs) were checked when first downloaded (full results in
+`reports/image_checks.json`):
 
-| Bug | Commits after the bug's commit | Internet access |
-|---|---|---|
-| `django__django-11790` | 0 | yes |
-| `django__django-11815` | 0 | yes |
+| | Result |
+|---|---|
+| Commits after the bug's own commit | **0** in every image |
+| Remotes, stashes | none |
+| Internet access from inside the container | **yes** in every image |
+| `import django` / `import sphinx` under emulation | 0.6–0.9 s |
 
 - **Future git history: not present.** `git rev-list --all --not HEAD` finds 0 commits, and there
   are no remotes or stashes. So `git log --all` can't reveal the fix in these images.

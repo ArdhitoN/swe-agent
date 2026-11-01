@@ -1,0 +1,45 @@
+{
+  "chosen": "baseline_run_3",
+  "reason": "verified; passes 2 pooled reproductions; group of 2 with identical results",
+  "pooled_reproductions": 3,
+  "evaluations": [
+    {
+      "name": "baseline_run_2",
+      "applies": true,
+      "repro_passes": [
+        false,
+        true,
+        true
+      ],
+      "regressions": [],
+      "patch_lines": 32,
+      "eligible": true
+    },
+    {
+      "name": "baseline_run_3",
+      "applies": true,
+      "repro_passes": [
+        false,
+        true,
+        true
+      ],
+      "regressions": [],
+      "patch_lines": 23,
+      "eligible": true
+    },
+    {
+      "name": "baseline_run_4",
+      "applies": true,
+      "repro_passes": [
+        false,
+        true,
+        true
+      ],
+      "regressions": [
+        "tests/test_ext_napoleon_docstring.py::GoogleDocstringTest::test_noindex"
+      ],
+      "patch_lines": 15,
+      "eligible": false
+    }
+  ]
+}

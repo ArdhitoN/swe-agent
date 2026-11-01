@@ -1,0 +1,43 @@
+{
+  "chosen": "baseline_run_4",
+  "reason": "verified; passes 3 pooled reproductions; group of 3 with identical results",
+  "pooled_reproductions": 3,
+  "evaluations": [
+    {
+      "name": "baseline_run_2",
+      "applies": true,
+      "repro_passes": [
+        true,
+        true,
+        true
+      ],
+      "regressions": [],
+      "patch_lines": 10,
+      "eligible": true
+    },
+    {
+      "name": "baseline_run_3",
+      "applies": true,
+      "repro_passes": [
+        true,
+        true,
+        true
+      ],
+      "regressions": [],
+      "patch_lines": 17,
+      "eligible": true
+    },
+    {
+      "name": "baseline_run_4",
+      "applies": true,
+      "repro_passes": [
+        true,
+        true,
+        true
+      ],
+      "regressions": [],
+      "patch_lines": 8,
+      "eligible": true
+    }
+  ]
+}

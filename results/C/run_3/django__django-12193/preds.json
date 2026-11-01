@@ -1,0 +1,7 @@
+{
+  "django__django-12193": {
+    "model_name_or_path": "openai/gpt-5-mini-2025-08-07",
+    "instance_id": "django__django-12193",
+    "model_patch": "diff --git a/django/contrib/postgres/forms/array.py b/django/contrib/postgres/forms/array.py\nindex 2e19cd574a..3b69d88499 100644\n--- a/django/contrib/postgres/forms/array.py\n+++ b/django/contrib/postgres/forms/array.py\n@@ -144,10 +144,14 @@ class SplitArrayWidget(forms.Widget):\n                 widget_value = value[i]\n             except IndexError:\n                 widget_value = None\n+            # Make a shallow copy of final_attrs for each subwidget so that\n+            # widgets (notably CheckboxInput) that modify the attrs dict in\n+            # get_context() don't affect subsequent widgets.\n+            widget_attrs = final_attrs.copy()\n             if id_:\n-                final_attrs = {**final_attrs, 'id': '%s_%s' % (id_, i)}\n+                widget_attrs['id'] = '%s_%s' % (id_, i)\n             context['widget']['subwidgets'].append(\n-                self.widget.get_context(name + '_%s' % i, widget_value, final_attrs)['widget']\n+                self.widget.get_context(name + '_%s' % i, widget_value, widget_attrs)['widget']\n             )\n         return context\n \n"
+  }
+}

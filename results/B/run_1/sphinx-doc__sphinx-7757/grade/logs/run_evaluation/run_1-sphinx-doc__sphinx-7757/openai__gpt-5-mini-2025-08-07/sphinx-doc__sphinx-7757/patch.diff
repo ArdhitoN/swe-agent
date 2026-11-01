@@ -1,0 +1,72 @@
+diff --git a/sphinx/util/inspect.py b/sphinx/util/inspect.py
+index 15f0d66e2..107ebce38 100644
+--- a/sphinx/util/inspect.py
++++ b/sphinx/util/inspect.py
+@@ -493,7 +493,20 @@ def stringify_signature(sig: inspect.Signature, show_annotation: bool = True,
+                 arg.write(' = ')
+             else:
+                 arg.write('=')
+-            arg.write(object_description(param.default))
++            # If the default is a string produced by signature_from_str (i.e.
++            # a code-like string), we want to emit it verbatim instead of
++            # repr()-ing it. We detect that by checking whether it parses as a
++            # valid Python expression.
++            if isinstance(param.default, str):
++                try:
++                    # use the ast from sphinx.pycode.ast
++                    ast.parse(param.default)
++                except Exception:
++                    arg.write(object_description(param.default))
++                else:
++                    arg.write(param.default)
++            else:
++                arg.write(object_description(param.default))
+ 
+         args.append(arg.getvalue())
+         last_kind = param.kind
+@@ -520,21 +533,33 @@ def signature_from_str(signature: str) -> inspect.Signature:
+     args = definition.args
+     params = []
+ 
++    # Handle positional-only arguments (PEP 570) together with regular
++    # positional-or-keyword arguments so that defaults are mapped correctly.
++    positional_nodes = []
+     if hasattr(args, "posonlyargs"):
+-        for arg in args.posonlyargs:  # type: ignore
+-            annotation = ast_unparse(arg.annotation) or Parameter.empty
+-            params.append(Parameter(arg.arg, Parameter.POSITIONAL_ONLY,
+-                                    annotation=annotation))
+-
+-    for i, arg in enumerate(args.args):
+-        if len(args.args) - i <= len(args.defaults):
+-            default = ast_unparse(args.defaults[-len(args.args) + i])
+-        else:
+-            default = Parameter.empty
++        positional_nodes.extend(list(args.posonlyargs))  # type: ignore
++    positional_nodes.extend(list(args.args))
++
++    for i, arg in enumerate(positional_nodes):
++        # defaults correspond to the last N positional parameters (including
++        # posonlyargs and args.args). Map defaults accordingly.
++        num_positional = len(positional_nodes)
++        num_defaults = len(args.defaults)
++        default = Parameter.empty
++        if num_defaults:
++            offset = num_positional - num_defaults
++            if i >= offset:
++                default_node = args.defaults[i - offset]
++                default = ast_unparse(default_node) or Parameter.empty
+ 
+         annotation = ast_unparse(arg.annotation) or Parameter.empty
+-        params.append(Parameter(arg.arg, Parameter.POSITIONAL_OR_KEYWORD,
+-                                default=default, annotation=annotation))
++        kind = Parameter.POSITIONAL_ONLY if (hasattr(args, "posonlyargs") and i < len(getattr(args, "posonlyargs"))) else Parameter.POSITIONAL_OR_KEYWORD
++        params.append(Parameter(arg.arg, kind, default=default, annotation=annotation))
++
++    # Note: for positional-only parameters that have defaults, we need to attach
++    # the default to the Parameter. However, inspect.Parameter requires that
++    # POSITIONAL_ONLY parameters may have defaults as well. The above mapping
++    # ensures defaults are applied to both posonlyargs and args.args.
+ 
+     if args.vararg:
+         annotation = ast_unparse(args.vararg.annotation) or Parameter.empty

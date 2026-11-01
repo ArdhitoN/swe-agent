@@ -1,0 +1,52 @@
+2026-11-01 17:51:49,904 - INFO - Creating container for django__django-12193...
+2026-11-01 17:51:49,955 - INFO - Container for django__django-12193 created: d004ca8493ca118da541aada8858accf8c7a2d87525ee8f9fbf6b28a40d00c76
+2026-11-01 17:51:50,069 - INFO - Container for django__django-12193 started: d004ca8493ca118da541aada8858accf8c7a2d87525ee8f9fbf6b28a40d00c76
+2026-11-01 17:51:50,070 - INFO - Intermediate patch for django__django-12193 written to logs/run_evaluation/run_2-django__django-12193/openai__gpt-5-mini-2025-08-07/django__django-12193/patch.diff, now applying to container...
+2026-11-01 17:51:50,200 - INFO - >>>>> Applied Patch:
+Checking patch django/forms/widgets.py...
+Applied patch django/forms/widgets.py cleanly.
+
+2026-11-01 17:51:50,906 - INFO - Git diff before:
+diff --git a/django/forms/widgets.py b/django/forms/widgets.py
+index 6fe220bea7..ffb35266ac 100644
+--- a/django/forms/widgets.py
++++ b/django/forms/widgets.py
+@@ -522,8 +522,10 @@ class CheckboxInput(Input):
+ 
+     def get_context(self, name, value, attrs):
+         if self.check_test(value):
+-            if attrs is None:
+-                attrs = {}
++            # Don't mutate the passed-in attrs dict. Make a shallow copy so
++            # CheckboxInput.get_context doesn't have side effects for callers
++            # that reuse the same attrs dict (e.g. SplitArrayWidget).
++            attrs = {} if attrs is None else attrs.copy()
+             attrs['checked'] = True
+         return super().get_context(name, value, attrs)
+2026-11-01 17:51:50,906 - INFO - Eval script for django__django-12193 written to logs/run_evaluation/run_2-django__django-12193/openai__gpt-5-mini-2025-08-07/django__django-12193/eval.sh; copying to container...
+2026-11-01 17:52:05,935 - INFO - Test runtime: 14.98 seconds
+2026-11-01 17:52:05,937 - INFO - Test output for django__django-12193 written to logs/run_evaluation/run_2-django__django-12193/openai__gpt-5-mini-2025-08-07/django__django-12193/test_output.txt
+2026-11-01 17:52:06,053 - INFO - Git diff after:
+diff --git a/django/forms/widgets.py b/django/forms/widgets.py
+index 6fe220bea7..ffb35266ac 100644
+--- a/django/forms/widgets.py
++++ b/django/forms/widgets.py
+@@ -522,8 +522,10 @@ class CheckboxInput(Input):
+ 
+     def get_context(self, name, value, attrs):
+         if self.check_test(value):
+-            if attrs is None:
+-                attrs = {}
++            # Don't mutate the passed-in attrs dict. Make a shallow copy so
++            # CheckboxInput.get_context doesn't have side effects for callers
++            # that reuse the same attrs dict (e.g. SplitArrayWidget).
++            attrs = {} if attrs is None else attrs.copy()
+             attrs['checked'] = True
+         return super().get_context(name, value, attrs)
+2026-11-01 17:52:06,054 - INFO - Grading answer for django__django-12193...
+2026-11-01 17:52:06,058 - INFO - report: {'django__django-12193': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'infra_failure': False, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_get_context_does_not_mutate_attrs (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_render_check_exception (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_check_test (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_empty (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_false (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_int (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_none (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_true (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_value (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_value_from_datadict (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_value_from_datadict_string_int (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_value_omitted_from_data (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-12193: resolved: True
+2026-11-01 17:52:06,059 - INFO - Attempting to stop container sweb.eval.django__django-12193.run_2-django__django-12193...
+2026-11-01 17:52:21,240 - INFO - Container sweb.eval.django__django-12193.run_2-django__django-12193 stopped successfully.
+2026-11-01 17:52:21,241 - INFO - Attempting to remove container sweb.eval.django__django-12193.run_2-django__django-12193...
+2026-11-01 17:52:21,293 - INFO - Container sweb.eval.django__django-12193.run_2-django__django-12193 removed successfully.

@@ -1,0 +1,83 @@
+diff --git a/sphinx/ext/napoleon/docstring.py b/sphinx/ext/napoleon/docstring.py
+index b3daa06f1..585601ead 100644
+--- a/sphinx/ext/napoleon/docstring.py
++++ b/sphinx/ext/napoleon/docstring.py
+@@ -392,34 +392,71 @@ class GoogleDocstring:
+         lines = []
+         for _name, _type, _desc in fields:
+             _desc = self._strip_empty(_desc)
++
++            # Handle combined parameter names like "x1, x2" by splitting them
++            # so that Sphinx receives separate :param:/:type: fields for each
++            # parameter name. This avoids malformed field markup such as
++            # ":type x1, x2: ..." which Sphinx may misinterpret.
++            if ', ' in _name:
++                names = [n.strip() for n in _name.split(',')]
++            else:
++                names = [_name]
++
+             if any(_desc):
+                 _desc = self._fix_field_desc(_desc)
+-                field = ':%s %s: ' % (field_role, _name)
+-                lines.extend(self._format_block(field, _desc))
++                # Attach the description to the first parameter only
++                first = True
++                for name in names:
++                    if first:
++                        field = ':%s %s: ' % (field_role, name)
++                        lines.extend(self._format_block(field, _desc))
++                        first = False
++                    else:
++                        lines.append(':%s %s:' % (field_role, name))
+             else:
+-                lines.append(':%s %s:' % (field_role, _name))
++                for name in names:
++                    lines.append(':%s %s:' % (field_role, name))
+ 
+             if _type:
+-                lines.append(':%s %s: %s' % (type_role, _name, _type))
++                for name in names:
++                    lines.append(':%s %s: %s' % (type_role, name, _type))
+         return lines + ['']
+ 
+     def _format_field(self, _name: str, _type: str, _desc: List[str]) -> List[str]:
+         _desc = self._strip_empty(_desc)
+         has_desc = any(_desc)
+         separator = ' -- ' if has_desc else ''
++
++        # If multiple parameter names are combined on a single line (e.g.
++        # "x1, x2"), prefer a simpler, italicized display of the type
++        # rather than the Sphinx role markup. This matches NumPy's
++        # documentation style and avoids confusing rendering in HTML.
++        display_type = _type
++        if _type and ', ' in _name:
++            # Strip Sphinx role markup like :class:`name` or :obj:`name` to get
++            # the plain type name, and remove backticks.
++            display_type = re.sub(r':[a-zA-Z0-9_\-+:.]+:`([^`]*)`', r'\1', _type)
++            display_type = display_type.replace('`', '').strip()
++
+         if _name:
+             if _type:
+-                if '`' in _type:
++                # Use role markup for single names, but use italicized plain
++                # text for combined names (display_type will be unmarked).
++                if ', ' in _name:
++                    field = '**%s** (*%s*)%s' % (_name, display_type, separator)
++                elif '`' in _type:
+                     field = '**%s** (%s)%s' % (_name, _type, separator)
+                 else:
+                     field = '**%s** (*%s*)%s' % (_name, _type, separator)
+             else:
+                 field = '**%s**%s' % (_name, separator)
+         elif _type:
+-            if '`' in _type:
++            if '`' in _type and ', ' not in _name:
+                 field = '%s%s' % (_type, separator)
+             else:
+-                field = '*%s*%s' % (_type, separator)
++                # For bare types or combined-name cases, favor italics
++                typ = display_type if display_type else _type
++                field = '*%s*%s' % (typ, separator)
+         else:
+             field = ''
+ 

@@ -1,0 +1,32 @@
+[
+  {
+    "attempt": 1,
+    "exit_status": "LimitsExceeded",
+    "verified": false,
+    "api_calls": 83,
+    "cost": 0.125938875,
+    "patch_id": "0c08be2dfddd",
+    "has_repro": false,
+    "events": 8
+  },
+  {
+    "attempt": 2,
+    "exit_status": "Submitted",
+    "verified": true,
+    "api_calls": 38,
+    "cost": 0.026138049999999996,
+    "patch_id": "1f1befbe1e7b",
+    "has_repro": true,
+    "events": 3
+  },
+  {
+    "attempt": 3,
+    "exit_status": "Submitted",
+    "verified": true,
+    "api_calls": 54,
+    "cost": 0.05556079999999999,
+    "patch_id": "0000f7f3046d",
+    "has_repro": true,
+    "events": 3
+  }
+]

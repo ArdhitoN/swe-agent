@@ -1,0 +1,74 @@
+2026-11-01 18:33:49,181 - INFO - Creating container for django__django-12193...
+2026-11-01 18:33:49,247 - INFO - Container for django__django-12193 created: 533c4878fe586cd1c7f38406140ce718a20bf34839602a6e33ec1d069cc6c215
+2026-11-01 18:33:49,375 - INFO - Container for django__django-12193 started: 533c4878fe586cd1c7f38406140ce718a20bf34839602a6e33ec1d069cc6c215
+2026-11-01 18:33:49,376 - INFO - Intermediate patch for django__django-12193 written to logs/run_evaluation/run_1-django__django-12193/openai__gpt-5-mini-2025-08-07/django__django-12193/patch.diff, now applying to container...
+2026-11-01 18:33:49,502 - INFO - >>>>> Applied Patch:
+Checking patch django/contrib/postgres/forms/array.py...
+Applied patch django/contrib/postgres/forms/array.py cleanly.
+
+2026-11-01 18:33:50,317 - INFO - Git diff before:
+diff --git a/django/contrib/postgres/forms/array.py b/django/contrib/postgres/forms/array.py
+index 2e19cd574a..27b382d4cd 100644
+--- a/django/contrib/postgres/forms/array.py
++++ b/django/contrib/postgres/forms/array.py
+@@ -137,15 +137,19 @@ class SplitArrayWidget(forms.Widget):
+             self.widget.is_localized = self.is_localized
+         value = value or []
+         context['widget']['subwidgets'] = []
+-        final_attrs = self.build_attrs(attrs)
+-        id_ = final_attrs.get('id')
++        base_attrs = self.build_attrs(attrs)
++        id_ = base_attrs.get('id')
+         for i in range(max(len(value), self.size)):
+             try:
+                 widget_value = value[i]
+             except IndexError:
+                 widget_value = None
++            # Use a fresh copy of the base attributes for each subwidget so that
++            # widgets which mutate the attrs dict (e.g. CheckboxInput.get_context)
++            # do not affect subsequent subwidgets.
++            final_attrs = {**base_attrs}
+             if id_:
+-                final_attrs = {**final_attrs, 'id': '%s_%s' % (id_, i)}
++                final_attrs['id'] = '%s_%s' % (id_, i)
+             context['widget']['subwidgets'].append(
+                 self.widget.get_context(name + '_%s' % i, widget_value, final_attrs)['widget']
+             )
+2026-11-01 18:33:50,317 - INFO - Eval script for django__django-12193 written to logs/run_evaluation/run_1-django__django-12193/openai__gpt-5-mini-2025-08-07/django__django-12193/eval.sh; copying to container...
+2026-11-01 18:34:05,153 - INFO - Test runtime: 14.78 seconds
+2026-11-01 18:34:05,155 - INFO - Test output for django__django-12193 written to logs/run_evaluation/run_1-django__django-12193/openai__gpt-5-mini-2025-08-07/django__django-12193/test_output.txt
+2026-11-01 18:34:05,260 - INFO - Git diff after:
+diff --git a/django/contrib/postgres/forms/array.py b/django/contrib/postgres/forms/array.py
+index 2e19cd574a..27b382d4cd 100644
+--- a/django/contrib/postgres/forms/array.py
++++ b/django/contrib/postgres/forms/array.py
+@@ -137,15 +137,19 @@ class SplitArrayWidget(forms.Widget):
+             self.widget.is_localized = self.is_localized
+         value = value or []
+         context['widget']['subwidgets'] = []
+-        final_attrs = self.build_attrs(attrs)
+-        id_ = final_attrs.get('id')
++        base_attrs = self.build_attrs(attrs)
++        id_ = base_attrs.get('id')
+         for i in range(max(len(value), self.size)):
+             try:
+                 widget_value = value[i]
+             except IndexError:
+                 widget_value = None
++            # Use a fresh copy of the base attributes for each subwidget so that
++            # widgets which mutate the attrs dict (e.g. CheckboxInput.get_context)
++            # do not affect subsequent subwidgets.
++            final_attrs = {**base_attrs}
+             if id_:
+-                final_attrs = {**final_attrs, 'id': '%s_%s' % (id_, i)}
++                final_attrs['id'] = '%s_%s' % (id_, i)
+             context['widget']['subwidgets'].append(
+                 self.widget.get_context(name + '_%s' % i, widget_value, final_attrs)['widget']
+             )
+2026-11-01 18:34:05,260 - INFO - Grading answer for django__django-12193...
+2026-11-01 18:34:05,264 - INFO - report: {'django__django-12193': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'infra_failure': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_get_context_does_not_mutate_attrs (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)']}, 'PASS_TO_PASS': {'success': ['test_render_check_exception (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_check_test (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_empty (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_false (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_int (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_none (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_true (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_value (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_value_from_datadict (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_value_from_datadict_string_int (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_value_omitted_from_data (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-12193: resolved: False
+2026-11-01 18:34:05,265 - INFO - Attempting to stop container sweb.eval.django__django-12193.run_1-django__django-12193...
+2026-11-01 18:34:20,507 - INFO - Container sweb.eval.django__django-12193.run_1-django__django-12193 stopped successfully.
+2026-11-01 18:34:20,508 - INFO - Attempting to remove container sweb.eval.django__django-12193.run_1-django__django-12193...
+2026-11-01 18:34:20,558 - INFO - Container sweb.eval.django__django-12193.run_1-django__django-12193 removed successfully.

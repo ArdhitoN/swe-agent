@@ -1,0 +1,24 @@
+diff --git a/django/db/migrations/serializer.py b/django/db/migrations/serializer.py
+index 27b5cbd379..1ec4bdd799 100755
+--- a/django/db/migrations/serializer.py
++++ b/django/db/migrations/serializer.py
+@@ -120,7 +120,18 @@ class EnumSerializer(BaseSerializer):
+     def serialize(self):
+         enum_class = self.value.__class__
+         module = enum_class.__module__
+-        v_string, v_imports = serializer_factory(self.value.value).serialize()
++        # Prefer serializing enum members by their value to keep backwards
++        # compatibility (e.g. TextEnum('a-value'), IntEnum(1)). However, if the
++        # enum value is a lazy translation (a Promise or LazyObject), serializing
++        # by value is brittle because the translated text can change depending
++        # on the active locale. In that case, serialize by the enum member name
++        # (e.g. module.EnumClass.MEMBER) which is stable.
++        val = self.value.value
++        if isinstance(val, (Promise, LazyObject)):
++            name = self.value.name
++            imports = {'import %s' % module}
++            return "%s.%s.%s" % (module, enum_class.__name__, name), imports
++        v_string, v_imports = serializer_factory(val).serialize()
+         imports = {'import %s' % module, *v_imports}
+         return "%s.%s(%s)" % (module, enum_class.__name__, v_string), imports
+ 
