@@ -81,3 +81,36 @@ def test_blocked_commands(cmd):
 ])
 def test_allowed_commands(cmd):
     assert blocked_reason(cmd) is None
+
+
+def _related(root, files):
+    import importlib.util
+
+    os.environ["GATED_REPO"] = str(root)
+    spec = importlib.util.spec_from_file_location("toolbox_under_test", TOOLBOX_SRC)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.related_tests(files)
+
+
+def test_related_tests_django_layout(tmp_path):
+    (tmp_path / "tests").mkdir()
+    (tmp_path / "tests" / "runtests.py").write_text("")
+    for name in ["delete", "delete_regress", "forms_tests", "auth_tests", "queries", "model_fields", "templates"]:
+        (tmp_path / "tests" / name).mkdir()
+        if name != "templates":  # a folder of template files, not tests
+            (tmp_path / "tests" / name / "tests.py").write_text("")
+    assert _related(tmp_path, ["django/db/models/deletion.py"]) == ["delete", "delete_regress"]
+    assert _related(tmp_path, ["django/contrib/auth/forms.py"]) == ["auth_tests"]
+    assert _related(tmp_path, ["django/db/models/query.py"]) == ["queries"]
+    assert _related(tmp_path, ["django/db/models/fields/__init__.py"]) == ["model_fields"]
+
+
+def test_related_tests_sphinx_layout(tmp_path):
+    (tmp_path / "sphinx").mkdir()
+    (tmp_path / "tests").mkdir()
+    for name in ["test_ext_autodoc.py", "test_ext_autodoc_configs.py", "test_domain_py.py", "test_build.py"]:
+        (tmp_path / "tests" / name).write_text("")
+    assert _related(tmp_path, ["sphinx/domains/python.py"])[0] == "tests/test_domain_py.py"
+    assert _related(tmp_path, ["sphinx/ext/autodoc/__init__.py"])[:2] == [
+        "tests/test_ext_autodoc.py", "tests/test_ext_autodoc_configs.py"]
