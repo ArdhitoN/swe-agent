@@ -52,3 +52,19 @@ def test_no_idle_alarm_while_exploring():
         d.record("view", {"i": i}, f"o{i}", "", progress=False)
     assert d.reason(exploring=True) is None
     assert d.reason(exploring=False)
+
+
+def test_short_repeated_outputs_are_not_a_loop():
+    d = StuckDetector()
+    for i in range(3):
+        d.record("search", {"pattern": f"p{i}"}, "no matches", "", progress=False)
+    assert d.reason() is None
+
+
+def test_progress_resets_the_ladder_and_cap_limits_it():
+    d = StuckDetector()
+    assert d.escalate(cap=NUDGE) == NUDGE
+    assert d.escalate(cap=NUDGE) == NUDGE  # exploring: never beyond a nudge
+    assert d.escalate() == ROLLBACK
+    d.progress_made()
+    assert d.escalate() == NUDGE

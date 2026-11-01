@@ -20,7 +20,8 @@ def _digest(text: str) -> str:
 
 
 class StuckDetector:
-    def __init__(self, window: int = 10, repeats: int = 3, idle_steps: int = 15):
+    def __init__(self, window: int = 10, repeats: int = 3, idle_steps: int = 15, min_output_chars: int = 200):
+        self.min_output_chars = min_output_chars
         self.window = window
         self.repeats = repeats
         self.idle_steps = idle_steps
@@ -41,7 +42,8 @@ class StuckDetector:
             self.actions.clear()
             self.outputs.clear()
         self.actions.append(_key(tool, args))
-        self.outputs.append(_digest(output))
+        # Short replies ("no matches", "exit code 0") repeat naturally; only long ones signal a loop.
+        self.outputs.append(_digest(output) if len(output) > self.min_output_chars else f"short:{len(self.outputs)}:{tool}{len(self.actions)}")
         digest = _digest(diff)
         if not self.diff_history or self.diff_history[-1] != digest:
             self.diff_history.append(digest)
@@ -66,9 +68,15 @@ class StuckDetector:
             return f"{self.steps_since_progress} steps without editing, testing or verifying"
         return None
 
-    def escalate(self) -> int:
-        """Call when reason() fires. Returns the new level and resets the short-term memory."""
-        self.level = min(self.level + 1, RESTART)
+    def progress_made(self) -> None:
+        """Real progress (a successful edit, a registered reproduction, a verify) resets the ladder,
+        so only consecutive stuckness can lead to a rollback or restart."""
+        self.level = 0
+
+    def escalate(self, cap: int = RESTART) -> int:
+        """Call when reason() fires. Returns the new level and resets the short-term memory.
+        cap limits how far it can go (while exploring, only a nudge)."""
+        self.level = min(self.level + 1, cap)
         self.actions.clear()
         self.outputs.clear()
         self.steps_since_progress = 0
