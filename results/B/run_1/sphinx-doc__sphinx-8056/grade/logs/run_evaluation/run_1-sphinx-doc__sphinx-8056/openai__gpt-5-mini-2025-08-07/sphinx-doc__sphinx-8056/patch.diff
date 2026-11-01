@@ -1,0 +1,21 @@
+diff --git a/sphinx/ext/napoleon/docstring.py b/sphinx/ext/napoleon/docstring.py
+index b3daa06f1..b4448af57 100644
+--- a/sphinx/ext/napoleon/docstring.py
++++ b/sphinx/ext/napoleon/docstring.py
+@@ -400,7 +400,15 @@ class GoogleDocstring:
+                 lines.append(':%s %s:' % (field_role, _name))
+ 
+             if _type:
+-                lines.append(':%s %s: %s' % (type_role, _name, _type))
++                # If multiple parameter names are combined in _name (e.g. "x1, x2"),
++                # generate a separate :type: field for each name so Sphinx can
++                # associate the type with each individual parameter when
++                # rendering (HTML, etc.). See issue with combined params.
++                if ', ' in _name:
++                    for single_name in _name.split(', '):
++                        lines.append(':%s %s: %s' % (type_role, single_name, _type))
++                else:
++                    lines.append(':%s %s: %s' % (type_role, _name, _type))
+         return lines + ['']
+ 
+     def _format_field(self, _name: str, _type: str, _desc: List[str]) -> List[str]:

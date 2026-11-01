@@ -1,0 +1,1518 @@
+{
+  "info": {
+    "model_stats": {
+      "instance_cost": 0.007065624999999999,
+      "api_calls": 15
+    },
+    "config": {
+      "agent": {
+        "system_template": "You are a careful software engineer fixing a real bug in an open-source Python project. You work through tools. Think briefly, then call tools. Be efficient: every call costs budget.",
+        "instance_template": "<issue>\n{{task}}\n</issue>\n\nYour only job: write a standalone script under /tmp (for example /tmp/repro.py) that reproduces this\nissue in /testbed. It must exit with a NON-ZERO code while the bug is present and exit 0 once the bug is\nfixed (use `assert` or `sys.exit(1)`). For Django, configure settings inside the script\n(`settings.configure(...)` then `django.setup()`). Do not change any repository files.\nReproduce the behaviour exactly as the issue describes it: the same input and the same entry point the user\nused (the same directive, field, API call or command), not an internal function you guessed.\nWhen the script fails on the current code because of the bug, call `register_repro` with its path.\nBudget: about {{step_limit}} tool-using replies.",
+        "step_limit": 30,
+        "cost_limit": 0.3,
+        "wall_time_limit_seconds": 0,
+        "max_consecutive_format_errors": 3,
+        "output_path": "/Users/pinhomemacbook4/job/smartm2m/swe-agent/results/C/run_1/django__django-11790/test_writer/writer_1.traj.json",
+        "localize_share": 0.25,
+        "mode": "repro"
+      },
+      "agent_type": "gated_agent.attempt.GatedAgent",
+      "model": {
+        "model_name": "openai/gpt-5-mini-2025-08-07",
+        "model_kwargs": {
+          "drop_params": true,
+          "parallel_tool_calls": true,
+          "service_tier": "flex"
+        },
+        "litellm_model_registry": null,
+        "set_cache_control": null,
+        "cost_tracking": "default",
+        "format_error_template": "Tool call error: {{error}}\nEvery reply must call at least one tool, with JSON arguments. Available tools: {{tools}}.",
+        "observation_template": "{{ output.output }}",
+        "multimodal_regex": ""
+      },
+      "model_type": "gated_agent.model.GatedModel",
+      "environment": {
+        "image": "docker.io/swebench/sweb.eval.x86_64.django_1776_django-11790:latest",
+        "cwd": "/testbed",
+        "env": {
+          "PAGER": "cat",
+          "MANPAGER": "cat",
+          "LESS": "-R",
+          "PIP_PROGRESS_BAR": "off",
+          "TQDM_DISABLE": "1",
+          "BASH_ENV": "/root/.bashrc"
+        },
+        "forward_env": [],
+        "timeout": 60,
+        "executable": "/Users/pinhomemacbook4/.docker/bin/docker",
+        "run_args": [
+          "--rm"
+        ],
+        "container_timeout": "2h",
+        "pull_timeout": 120,
+        "interpreter": [
+          "bash",
+          "-c"
+        ]
+      },
+      "environment_type": "minisweagent.environments.docker.DockerEnvironment"
+    },
+    "mini_version": "2.4.6",
+    "exit_status": "Submitted",
+    "submission": "#!/usr/bin/env python3\nimport sys\nfrom django.conf import settings\n\nsettings.configure(\n    INSTALLED_APPS=['django.contrib.auth', 'django.contrib.contenttypes'],\n    DATABASES={'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}},\n    SECRET_KEY='repro-key',\n)\n\nimport django\ndjango.setup()\n\nfrom django.contrib.auth.forms import AuthenticationForm\n\nform = AuthenticationForm()\n# Render the username field widget as HTML\ntry:\n    widget_html = form['username'].as_widget()\nexcept TypeError:\n    # Some Django versions require a renderer argument for as_widget\n    widget_html = form['username'].as_widget(renderer=None)\n\nprint(widget_html)\n\nif 'maxlength' not in widget_html:\n    print('FAIL: maxlength attribute not present on username field')\n    sys.exit(1)\nelse:\n    print('OK: maxlength attribute present')\n    sys.exit(0)\n",
+    "gated": {
+      "events": [
+        {
+          "step": 15,
+          "event": "repro_registered",
+          "path": "/tmp/repro.py"
+        }
+      ],
+      "repro_path": "/tmp/repro.py",
+      "repro_code": "#!/usr/bin/env python3\nimport sys\nfrom django.conf import settings\n\nsettings.configure(\n    INSTALLED_APPS=['django.contrib.auth', 'django.contrib.contenttypes'],\n    DATABASES={'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}},\n    SECRET_KEY='repro-key',\n)\n\nimport django\ndjango.setup()\n\nfrom django.contrib.auth.forms import AuthenticationForm\n\nform = AuthenticationForm()\n# Render the username field widget as HTML\ntry:\n    widget_html = form['username'].as_widget()\nexcept TypeError:\n    # Some Django versions require a renderer argument for as_widget\n    widget_html = form['username'].as_widget(renderer=None)\n\nprint(widget_html)\n\nif 'maxlength' not in widget_html:\n    print('FAIL: maxlength attribute not present on username field')\n    sys.exit(1)\nelse:\n    print('OK: maxlength attribute present')\n    sys.exit(0)\n",
+      "verified": false,
+      "last_verify": {}
+    }
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a careful software engineer fixing a real bug in an open-source Python project. You work through tools. Think briefly, then call tools. Be efficient: every call costs budget."
+    },
+    {
+      "role": "user",
+      "content": "<issue>\nAuthenticationForm's username field doesn't set maxlength HTML attribute.\nDescription\n\t\nAuthenticationForm's username field doesn't render with maxlength HTML attribute anymore.\nRegression introduced in #27515 and 5ceaf14686ce626404afb6a5fbd3d8286410bf13.\n\u200bhttps://groups.google.com/forum/?utm_source=digest&utm_medium=email#!topic/django-developers/qnfSqro0DlA\n\u200bhttps://forum.djangoproject.com/t/possible-authenticationform-max-length-regression-in-django-2-1/241\n\n</issue>\n\nYour only job: write a standalone script under /tmp (for example /tmp/repro.py) that reproduces this\nissue in /testbed. It must exit with a NON-ZERO code while the bug is present and exit 0 once the bug is\nfixed (use `assert` or `sys.exit(1)`). For Django, configure settings inside the script\n(`settings.configure(...)` then `django.setup()`). Do not change any repository files.\nReproduce the behaviour exactly as the issue describes it: the same input and the same entry point the user\nused (the same directive, field, API call or command), not an internal function you guessed.\nWhen the script fails on the current code because of the bug, call `register_repro` with its path.\nBudget: about 30 tool-using replies."
+    },
+    {
+      "content": null,
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\"pattern\":\"AuthenticationForm\",\"path\":\"\"}",
+            "name": "search"
+          },
+          "id": "call_h4TRK1lGURAKOhce0GGBvKgA",
+          "type": "function"
+        }
+      ],
+      "function_call": null,
+      "provider_specific_fields": {
+        "refusal": null
+      },
+      "annotations": [],
+      "extra": {
+        "actions": [
+          {
+            "tool": "search",
+            "args": {
+              "pattern": "AuthenticationForm",
+              "path": ""
+            },
+            "tool_call_id": "call_h4TRK1lGURAKOhce0GGBvKgA",
+            "command": "search {\"pattern\": \"AuthenticationForm\", \"path\": \"\"}"
+          }
+        ],
+        "response": {
+          "id": "chatcmpl-EfNbZcGT0ETdG3GjYqfiW0Q57ASEu",
+          "created": 1793530893,
+          "model": "gpt-5-mini-2025-08-07",
+          "object": "chat.completion",
+          "system_fingerprint": null,
+          "choices": [
+            {
+              "finish_reason": "tool_calls",
+              "index": 0,
+              "message": {
+                "content": null,
+                "role": "assistant",
+                "tool_calls": [
+                  {
+                    "function": {
+                      "arguments": "{\"pattern\":\"AuthenticationForm\",\"path\":\"\"}",
+                      "name": "search"
+                    },
+                    "id": "call_h4TRK1lGURAKOhce0GGBvKgA",
+                    "type": "function"
+                  }
+                ],
+                "function_call": null,
+                "provider_specific_fields": {
+                  "refusal": null
+                },
+                "annotations": []
+              },
+              "provider_specific_fields": {}
+            }
+          ],
+          "usage": {
+            "completion_tokens": 27,
+            "prompt_tokens": 681,
+            "total_tokens": 708,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 0,
+              "rejected_prediction_tokens": 0
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cached_tokens": 0
+            }
+          },
+          "moderation": null,
+          "service_tier": "flex"
+        },
+        "cost": 0.000112125,
+        "timestamp": 1793530894.731781
+      }
+    },
+    {
+      "content": "django/contrib/admin/forms.py:2:from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm\ndjango/contrib/admin/forms.py:6:class AdminAuthenticationForm(AuthenticationForm):\ndjango/contrib/admin/forms.py:11:        **AuthenticationForm.error_messages,\ndjango/contrib/admin/sites.py:389:        from django.contrib.admin.forms import AdminAuthenticationForm\ndjango/contrib/admin/sites.py:403:            'authentication_form': self.login_form or AdminAuthenticationForm,\ndjango/contrib/auth/forms.py:163:class AuthenticationForm(forms.Form):\ndjango/contrib/auth/views.py:11:    AuthenticationForm, PasswordChangeForm, PasswordResetForm, SetPasswordForm,\ndjango/contrib/auth/views.py:44:    form_class = AuthenticationForm\ndocs/internals/deprecation.txt:782:  :class:`~django.contrib.auth.forms.AuthenticationForm` will be removed\ndocs/ref/contrib/admin/index.txt:2827:    Subclass of :class:`~django.contrib.auth.forms.AuthenticationForm` that\ndocs/ref/contrib/auth.txt:93:        :class:`~django.contrib.auth.forms.AuthenticationForm` used by the\ndocs/ref/contrib/auth.txt:593:        behavior of :class:`~django.contrib.auth.forms.AuthenticationForm`\ndocs/ref/contrib/auth.txt:595:        <django.contrib.auth.forms.AuthenticationForm.confirm_login_allowed>`,\ndocs/ref/contrib/auth.txt:623:    :class:`~django.contrib.auth.forms.AuthenticationForm` used by the\ndocs/ref/contrib/auth.txt:625:    :meth:`~django.contrib.auth.forms.AuthenticationForm.confirm_login_allowed`\ndocs/releases/1.11.10.txt:9:CVE-2018-6188: Information leakage in ``AuthenticationForm``\ndocs/releases/1.11.10.txt:13::class:`~django.contrib.auth.forms.AuthenticationForm` run its\ndocs/releases/1.11.10.txt:21:This issue is fixed with the caveat that ``AuthenticationForm`` can no longer\ndocs/releases/1.11.8.txt:12:* Reallowed, following a regression in Django 1.10, ``AuthenticationForm`` to\ndocs/releases/1.3.txt:770::class:`~django.contrib.auth.forms.AuthenticationForm` instead of a manual\ndocs/releases/1.7.txt:420:* You can override the new :meth:`AuthenticationForm.confirm_login_allowed()\ndocs/releases/1.7.txt:421:  <django.contrib.auth.forms.AuthenticationForm.confirm_login_allowed>` method\ndocs/releases/1.7.txt:1846:  :class:`~django.contrib.auth.forms.AuthenticationForm` is removed.\ndocs/releases/2.0.2.txt:9:CVE-2018-6188: Information leakage in ``AuthenticationForm``\ndocs/releases/2.0.2.txt:13::class:`~django.contrib.auth.forms.AuthenticationForm` run its\ndocs/releases/2.0.2.txt:21:This issue is fixed with the caveat that ``AuthenticationForm`` can no longer\ndocs/releases/security.txt:852:Information leakage in ``AuthenticationForm``. `Full description\ndocs/topics/auth/customizing.txt:816:* :class:`~django.contrib.auth.forms.AuthenticationForm`: Uses the username\ndocs/topics/auth/default.txt:1009:      :class:`~django.contrib.auth.forms.AuthenticationForm`.\ndocs/topics/auth/default.txt:1052:      :class:`~django.contrib.auth.forms.AuthenticationForm`.\ndocs/topics/auth/default.txt:1466:.. class:: AuthenticationForm\ndocs/topics/auth/default.txt:1475:        By default, ``AuthenticationForm`` rejects users whose ``is_active``\ndocs/topics/auth/default.txt:1478:        that subclasses ``AuthenticationForm`` and overrides the\ndocs/topics/auth/default.txt:1486:            from django.contrib.auth.forms import AuthenticationForm\ndocs/topics/auth/default.txt:1488:            class AuthenticationFormWithInactiveUsersOkay(AuthenticationForm):\ndocs/topics/auth/default.txt:1498:            class PickyAuthenticationForm(AuthenticationForm):\ntests/admin_views/custom_has_permission_admin.py:6:from django.contrib.auth.forms import AuthenticationForm\ntests/admin_views/custom_has_permission_admin.py:13:class PermissionAdminAuthenticationForm(AuthenticationForm):\ntests/admin_views/custom_has_permission_admin.py:21:    login_form = PermissionAdminAuthenticationForm\ntests/admin_views/customadmin.py:15:    login_form = forms.CustomAdminAuthenticationForm\ntests/admin_views/forms.py:2:from django.contrib.admin.forms import AdminAuthenticationForm\ntests/admin_views/forms.py:6:class CustomAdminAuthenticationForm(AdminAuthenticationForm):\ntests/admin_views/test_forms.py:1:from django.contrib.admin.forms import AdminAuthenticationForm\ntests/admin_views/test_forms.py:9:class AdminAuthenticationFormTests(TestCase):\ntests/admin_views/test_forms.py:19:        form = AdminAuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:7:    AdminPasswordChangeForm, AuthenticationForm, PasswordChangeForm,\ntests/auth_tests/test_forms.py:283:class AuthenticationFormTest(TestDataMixin, TestCase):\ntests/auth_tests/test_forms.py:292:        form = AuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:308:        form = AuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:320:        form = AuthenticationForm(None, data)\n... 29 more matches; narrow the pattern or path",
+      "extra": {
+        "raw_output": "django/contrib/admin/forms.py:2:from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm\ndjango/contrib/admin/forms.py:6:class AdminAuthenticationForm(AuthenticationForm):\ndjango/contrib/admin/forms.py:11:        **AuthenticationForm.error_messages,\ndjango/contrib/admin/sites.py:389:        from django.contrib.admin.forms import AdminAuthenticationForm\ndjango/contrib/admin/sites.py:403:            'authentication_form': self.login_form or AdminAuthenticationForm,\ndjango/contrib/auth/forms.py:163:class AuthenticationForm(forms.Form):\ndjango/contrib/auth/views.py:11:    AuthenticationForm, PasswordChangeForm, PasswordResetForm, SetPasswordForm,\ndjango/contrib/auth/views.py:44:    form_class = AuthenticationForm\ndocs/internals/deprecation.txt:782:  :class:`~django.contrib.auth.forms.AuthenticationForm` will be removed\ndocs/ref/contrib/admin/index.txt:2827:    Subclass of :class:`~django.contrib.auth.forms.AuthenticationForm` that\ndocs/ref/contrib/auth.txt:93:        :class:`~django.contrib.auth.forms.AuthenticationForm` used by the\ndocs/ref/contrib/auth.txt:593:        behavior of :class:`~django.contrib.auth.forms.AuthenticationForm`\ndocs/ref/contrib/auth.txt:595:        <django.contrib.auth.forms.AuthenticationForm.confirm_login_allowed>`,\ndocs/ref/contrib/auth.txt:623:    :class:`~django.contrib.auth.forms.AuthenticationForm` used by the\ndocs/ref/contrib/auth.txt:625:    :meth:`~django.contrib.auth.forms.AuthenticationForm.confirm_login_allowed`\ndocs/releases/1.11.10.txt:9:CVE-2018-6188: Information leakage in ``AuthenticationForm``\ndocs/releases/1.11.10.txt:13::class:`~django.contrib.auth.forms.AuthenticationForm` run its\ndocs/releases/1.11.10.txt:21:This issue is fixed with the caveat that ``AuthenticationForm`` can no longer\ndocs/releases/1.11.8.txt:12:* Reallowed, following a regression in Django 1.10, ``AuthenticationForm`` to\ndocs/releases/1.3.txt:770::class:`~django.contrib.auth.forms.AuthenticationForm` instead of a manual\ndocs/releases/1.7.txt:420:* You can override the new :meth:`AuthenticationForm.confirm_login_allowed()\ndocs/releases/1.7.txt:421:  <django.contrib.auth.forms.AuthenticationForm.confirm_login_allowed>` method\ndocs/releases/1.7.txt:1846:  :class:`~django.contrib.auth.forms.AuthenticationForm` is removed.\ndocs/releases/2.0.2.txt:9:CVE-2018-6188: Information leakage in ``AuthenticationForm``\ndocs/releases/2.0.2.txt:13::class:`~django.contrib.auth.forms.AuthenticationForm` run its\ndocs/releases/2.0.2.txt:21:This issue is fixed with the caveat that ``AuthenticationForm`` can no longer\ndocs/releases/security.txt:852:Information leakage in ``AuthenticationForm``. `Full description\ndocs/topics/auth/customizing.txt:816:* :class:`~django.contrib.auth.forms.AuthenticationForm`: Uses the username\ndocs/topics/auth/default.txt:1009:      :class:`~django.contrib.auth.forms.AuthenticationForm`.\ndocs/topics/auth/default.txt:1052:      :class:`~django.contrib.auth.forms.AuthenticationForm`.\ndocs/topics/auth/default.txt:1466:.. class:: AuthenticationForm\ndocs/topics/auth/default.txt:1475:        By default, ``AuthenticationForm`` rejects users whose ``is_active``\ndocs/topics/auth/default.txt:1478:        that subclasses ``AuthenticationForm`` and overrides the\ndocs/topics/auth/default.txt:1486:            from django.contrib.auth.forms import AuthenticationForm\ndocs/topics/auth/default.txt:1488:            class AuthenticationFormWithInactiveUsersOkay(AuthenticationForm):\ndocs/topics/auth/default.txt:1498:            class PickyAuthenticationForm(AuthenticationForm):\ntests/admin_views/custom_has_permission_admin.py:6:from django.contrib.auth.forms import AuthenticationForm\ntests/admin_views/custom_has_permission_admin.py:13:class PermissionAdminAuthenticationForm(AuthenticationForm):\ntests/admin_views/custom_has_permission_admin.py:21:    login_form = PermissionAdminAuthenticationForm\ntests/admin_views/customadmin.py:15:    login_form = forms.CustomAdminAuthenticationForm\ntests/admin_views/forms.py:2:from django.contrib.admin.forms import AdminAuthenticationForm\ntests/admin_views/forms.py:6:class CustomAdminAuthenticationForm(AdminAuthenticationForm):\ntests/admin_views/test_forms.py:1:from django.contrib.admin.forms import AdminAuthenticationForm\ntests/admin_views/test_forms.py:9:class AdminAuthenticationFormTests(TestCase):\ntests/admin_views/test_forms.py:19:        form = AdminAuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:7:    AdminPasswordChangeForm, AuthenticationForm, PasswordChangeForm,\ntests/auth_tests/test_forms.py:283:class AuthenticationFormTest(TestDataMixin, TestCase):\ntests/auth_tests/test_forms.py:292:        form = AuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:308:        form = AuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:320:        form = AuthenticationForm(None, data)\n... 29 more matches; narrow the pattern or path",
+        "returncode": 0,
+        "timestamp": 1793530896.2775738,
+        "exception_info": ""
+      },
+      "tool_call_id": "call_h4TRK1lGURAKOhce0GGBvKgA",
+      "role": "tool"
+    },
+    {
+      "content": null,
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\"path\":\"django/contrib/auth/forms.py\",\"start\":1,\"end\":260}",
+            "name": "view"
+          },
+          "id": "call_gPeXMPFQp2VugNtAAkdsthH6",
+          "type": "function"
+        }
+      ],
+      "function_call": null,
+      "provider_specific_fields": {
+        "refusal": null
+      },
+      "annotations": [],
+      "extra": {
+        "actions": [
+          {
+            "tool": "view",
+            "args": {
+              "path": "django/contrib/auth/forms.py",
+              "start": 1,
+              "end": 260
+            },
+            "tool_call_id": "call_gPeXMPFQp2VugNtAAkdsthH6",
+            "command": "view {\"path\": \"django/contrib/auth/forms.py\", \"start\": 1, \"end\": 260}"
+          }
+        ],
+        "response": {
+          "id": "chatcmpl-EfNbdcxOLQu6IIYfvmFGOMgwWWvLN",
+          "created": 1793530897,
+          "model": "gpt-5-mini-2025-08-07",
+          "object": "chat.completion",
+          "system_fingerprint": null,
+          "choices": [
+            {
+              "finish_reason": "tool_calls",
+              "index": 0,
+              "message": {
+                "content": null,
+                "role": "assistant",
+                "tool_calls": [
+                  {
+                    "function": {
+                      "arguments": "{\"path\":\"django/contrib/auth/forms.py\",\"start\":1,\"end\":260}",
+                      "name": "view"
+                    },
+                    "id": "call_gPeXMPFQp2VugNtAAkdsthH6",
+                    "type": "function"
+                  }
+                ],
+                "function_call": null,
+                "provider_specific_fields": {
+                  "refusal": null
+                },
+                "annotations": []
+              },
+              "provider_specific_fields": {}
+            }
+          ],
+          "usage": {
+            "completion_tokens": 29,
+            "prompt_tokens": 1807,
+            "total_tokens": 1836,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 0,
+              "rejected_prediction_tokens": 0
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cached_tokens": 0
+            }
+          },
+          "moderation": null,
+          "service_tier": "flex"
+        },
+        "cost": 0.000254875,
+        "timestamp": 1793530897.148837
+      }
+    },
+    {
+      "content": "django/contrib/auth/forms.py (lines 1-150 of 435)\n     1  import unicodedata\n     2  \n     3  from django import forms\n     4  from django.contrib.auth import (\n     5      authenticate, get_user_model, password_validation,\n     6  )\n     7  from django.contrib.auth.hashers import (\n     8      UNUSABLE_PASSWORD_PREFIX, identify_hasher,\n     9  )\n    10  from django.contrib.auth.models import User\n    11  from django.contrib.auth.tokens import default_token_generator\n    12  from django.contrib.sites.shortcuts import get_current_site\n    13  from django.core.mail import EmailMultiAlternatives\n    14  from django.template import loader\n    15  from django.utils.encoding import force_bytes\n    16  from django.utils.http import urlsafe_base64_encode\n    17  from django.utils.text import capfirst\n    18  from django.utils.translation import gettext, gettext_lazy as _\n    19  \n    20  UserModel = get_user_model()\n    21  \n    22  \n    23  class ReadOnlyPasswordHashWidget(forms.Widget):\n    24      template_name = 'auth/widgets/read_only_password_hash.html'\n    25      read_only = True\n    26  \n    27      def get_context(self, name, value, attrs):\n    28          context = super().get_context(name, value, attrs)\n    29          summary = []\n    30          if not value or value.startswith(UNUSABLE_PASSWORD_PREFIX):\n    31              summary.append({'label': gettext(\"No password set.\")})\n    32          else:\n    33              try:\n    34                  hasher = identify_hasher(value)\n    35              except ValueError:\n    36                  summary.append({'label': gettext(\"Invalid password format or unknown hashing algorithm.\")})\n    37              else:\n    38                  for key, value_ in hasher.safe_summary(value).items():\n    39                      summary.append({'label': gettext(key), 'value': value_})\n    40          context['summary'] = summary\n    41          return context\n    42  \n    43  \n    44  class ReadOnlyPasswordHashField(forms.Field):\n    45      widget = ReadOnlyPasswordHashWidget\n    46  \n    47      def __init__(self, *args, **kwargs):\n    48          kwargs.setdefault(\"required\", False)\n    49          super().__init__(*args, **kwargs)\n    50  \n    51      def bound_data(self, data, initial):\n    52          # Always return initial because the widget doesn't\n    53          # render an input field.\n    54          return initial\n    55  \n    56      def has_changed(self, initial, data):\n    57          return False\n    58  \n    59  \n    60  class UsernameField(forms.CharField):\n    61      def to_python(self, value):\n    62          return unicodedata.normalize('NFKC', super().to_python(value))\n    63  \n    64      def widget_attrs(self, widget):\n    65          return {\n    66              **super().widget_attrs(widget),\n    67              'autocapitalize': 'none',\n    68              'autocomplete': 'username',\n    69          }\n    70  \n    71  \n    72  class UserCreationForm(forms.ModelForm):\n    73      \"\"\"\n    74      A form that creates a user, with no privileges, from the given username and\n    75      password.\n    76      \"\"\"\n    77      error_messages = {\n    78          'password_mismatch': _('The two password fields didn\u2019t match.'),\n    79      }\n    80      password1 = forms.CharField(\n    81          label=_(\"Password\"),\n    82          strip=False,\n    83          widget=forms.PasswordInput(attrs={'autocomplete': 'new-password'}),\n    84          help_text=password_validation.password_validators_help_text_html(),\n    85      )\n    86      password2 = forms.CharField(\n    87          label=_(\"Password confirmation\"),\n    88          widget=forms.PasswordInput(attrs={'autocomplete': 'new-password'}),\n    89          strip=False,\n    90          help_text=_(\"Enter the same password as before, for verification.\"),\n    91      )\n    92  \n    93      class Meta:\n    94          model = User\n    95          fields = (\"username\",)\n    96          field_classes = {'username': UsernameField}\n    97  \n    98      def __init__(self, *args, **kwargs):\n    99          super().__init__(*args, **kwargs)\n   100          if self._meta.model.USERNAME_FIELD in self.fields:\n   101              self.fields[self._meta.model.USERNAME_FIELD].widget.attrs['autofocus'] = True\n   102  \n   103      def clean_password2(self):\n   104          password1 = self.cleaned_data.get(\"password1\")\n   105          password2 = self.cleaned_data.get(\"password2\")\n   106          if password1 and password2 and password1 != password2:\n   107              raise forms.ValidationError(\n   108                  self.error_messages['password_mismatch'],\n   109                  code='password_mismatch',\n   110              )\n   111          return password2\n   112  \n   113      def _post_clean(self):\n   114          super()._post_clean()\n   115          # Validate the password after self.instance is updated with form data\n   116          # by super().\n   117          password = self.cleaned_data.get('password2')\n   118          if password:\n   119              try:\n   120                  password_validation.validate_password(password, self.instance)\n   121              except forms.ValidationError as error:\n   122                  self.add_error('password2', error)\n   123  \n   124      def save(self, commit=True):\n   125          user = super().save(commit=False)\n   126          user.set_password(self.cleaned_data[\"password1\"])\n   127          if commit:\n   128              user.save()\n   129          return user\n   130  \n   131  \n   132  class UserChangeForm(forms.ModelForm):\n   133      password = ReadOnlyPasswordHashField(\n   134          label=_(\"Password\"),\n   135          help_text=_(\n   136              'Raw passwords are not stored, so there is no way to see this '\n   137              'user\u2019s password, but you can change the password using '\n   138              '<a href=\"{}\">this form</a>.'\n   139          ),\n   140      )\n   141  \n   142      class Meta:\n   143          model = User\n   144          fields = '__all__'\n   145          field_classes = {'username': UsernameField}\n   146  \n   147      def __init__(self, *args, **kwargs):\n   148          super().__init__(*args, **kwargs)\n   149          password = self.fields.get('password')\n   150          if password:",
+      "extra": {
+        "raw_output": "django/contrib/auth/forms.py (lines 1-150 of 435)\n     1  import unicodedata\n     2  \n     3  from django import forms\n     4  from django.contrib.auth import (\n     5      authenticate, get_user_model, password_validation,\n     6  )\n     7  from django.contrib.auth.hashers import (\n     8      UNUSABLE_PASSWORD_PREFIX, identify_hasher,\n     9  )\n    10  from django.contrib.auth.models import User\n    11  from django.contrib.auth.tokens import default_token_generator\n    12  from django.contrib.sites.shortcuts import get_current_site\n    13  from django.core.mail import EmailMultiAlternatives\n    14  from django.template import loader\n    15  from django.utils.encoding import force_bytes\n    16  from django.utils.http import urlsafe_base64_encode\n    17  from django.utils.text import capfirst\n    18  from django.utils.translation import gettext, gettext_lazy as _\n    19  \n    20  UserModel = get_user_model()\n    21  \n    22  \n    23  class ReadOnlyPasswordHashWidget(forms.Widget):\n    24      template_name = 'auth/widgets/read_only_password_hash.html'\n    25      read_only = True\n    26  \n    27      def get_context(self, name, value, attrs):\n    28          context = super().get_context(name, value, attrs)\n    29          summary = []\n    30          if not value or value.startswith(UNUSABLE_PASSWORD_PREFIX):\n    31              summary.append({'label': gettext(\"No password set.\")})\n    32          else:\n    33              try:\n    34                  hasher = identify_hasher(value)\n    35              except ValueError:\n    36                  summary.append({'label': gettext(\"Invalid password format or unknown hashing algorithm.\")})\n    37              else:\n    38                  for key, value_ in hasher.safe_summary(value).items():\n    39                      summary.append({'label': gettext(key), 'value': value_})\n    40          context['summary'] = summary\n    41          return context\n    42  \n    43  \n    44  class ReadOnlyPasswordHashField(forms.Field):\n    45      widget = ReadOnlyPasswordHashWidget\n    46  \n    47      def __init__(self, *args, **kwargs):\n    48          kwargs.setdefault(\"required\", False)\n    49          super().__init__(*args, **kwargs)\n    50  \n    51      def bound_data(self, data, initial):\n    52          # Always return initial because the widget doesn't\n    53          # render an input field.\n    54          return initial\n    55  \n    56      def has_changed(self, initial, data):\n    57          return False\n    58  \n    59  \n    60  class UsernameField(forms.CharField):\n    61      def to_python(self, value):\n    62          return unicodedata.normalize('NFKC', super().to_python(value))\n    63  \n    64      def widget_attrs(self, widget):\n    65          return {\n    66              **super().widget_attrs(widget),\n    67              'autocapitalize': 'none',\n    68              'autocomplete': 'username',\n    69          }\n    70  \n    71  \n    72  class UserCreationForm(forms.ModelForm):\n    73      \"\"\"\n    74      A form that creates a user, with no privileges, from the given username and\n    75      password.\n    76      \"\"\"\n    77      error_messages = {\n    78          'password_mismatch': _('The two password fields didn\u2019t match.'),\n    79      }\n    80      password1 = forms.CharField(\n    81          label=_(\"Password\"),\n    82          strip=False,\n    83          widget=forms.PasswordInput(attrs={'autocomplete': 'new-password'}),\n    84          help_text=password_validation.password_validators_help_text_html(),\n    85      )\n    86      password2 = forms.CharField(\n    87          label=_(\"Password confirmation\"),\n    88          widget=forms.PasswordInput(attrs={'autocomplete': 'new-password'}),\n    89          strip=False,\n    90          help_text=_(\"Enter the same password as before, for verification.\"),\n    91      )\n    92  \n    93      class Meta:\n    94          model = User\n    95          fields = (\"username\",)\n    96          field_classes = {'username': UsernameField}\n    97  \n    98      def __init__(self, *args, **kwargs):\n    99          super().__init__(*args, **kwargs)\n   100          if self._meta.model.USERNAME_FIELD in self.fields:\n   101              self.fields[self._meta.model.USERNAME_FIELD].widget.attrs['autofocus'] = True\n   102  \n   103      def clean_password2(self):\n   104          password1 = self.cleaned_data.get(\"password1\")\n   105          password2 = self.cleaned_data.get(\"password2\")\n   106          if password1 and password2 and password1 != password2:\n   107              raise forms.ValidationError(\n   108                  self.error_messages['password_mismatch'],\n   109                  code='password_mismatch',\n   110              )\n   111          return password2\n   112  \n   113      def _post_clean(self):\n   114          super()._post_clean()\n   115          # Validate the password after self.instance is updated with form data\n   116          # by super().\n   117          password = self.cleaned_data.get('password2')\n   118          if password:\n   119              try:\n   120                  password_validation.validate_password(password, self.instance)\n   121              except forms.ValidationError as error:\n   122                  self.add_error('password2', error)\n   123  \n   124      def save(self, commit=True):\n   125          user = super().save(commit=False)\n   126          user.set_password(self.cleaned_data[\"password1\"])\n   127          if commit:\n   128              user.save()\n   129          return user\n   130  \n   131  \n   132  class UserChangeForm(forms.ModelForm):\n   133      password = ReadOnlyPasswordHashField(\n   134          label=_(\"Password\"),\n   135          help_text=_(\n   136              'Raw passwords are not stored, so there is no way to see this '\n   137              'user\u2019s password, but you can change the password using '\n   138              '<a href=\"{}\">this form</a>.'\n   139          ),\n   140      )\n   141  \n   142      class Meta:\n   143          model = User\n   144          fields = '__all__'\n   145          field_classes = {'username': UsernameField}\n   146  \n   147      def __init__(self, *args, **kwargs):\n   148          super().__init__(*args, **kwargs)\n   149          password = self.fields.get('password')\n   150          if password:",
+        "returncode": 0,
+        "timestamp": 1793530898.220872,
+        "exception_info": ""
+      },
+      "tool_call_id": "call_gPeXMPFQp2VugNtAAkdsthH6",
+      "role": "tool"
+    },
+    {
+      "content": null,
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\"path\":\"django/contrib/auth/forms.py\",\"start\":150,\"end\":360}",
+            "name": "view"
+          },
+          "id": "call_pkf0RtrTCXv9dpRuH2ouo2cn",
+          "type": "function"
+        }
+      ],
+      "function_call": null,
+      "provider_specific_fields": {
+        "refusal": null
+      },
+      "annotations": [],
+      "extra": {
+        "actions": [
+          {
+            "tool": "view",
+            "args": {
+              "path": "django/contrib/auth/forms.py",
+              "start": 150,
+              "end": 360
+            },
+            "tool_call_id": "call_pkf0RtrTCXv9dpRuH2ouo2cn",
+            "command": "view {\"path\": \"django/contrib/auth/forms.py\", \"start\": 150, \"end\": 360}"
+          }
+        ],
+        "response": {
+          "id": "chatcmpl-EfNbfMas5QZA4fx8WxkPBk04R3hfW",
+          "created": 1793530899,
+          "model": "gpt-5-mini-2025-08-07",
+          "object": "chat.completion",
+          "system_fingerprint": null,
+          "choices": [
+            {
+              "finish_reason": "tool_calls",
+              "index": 0,
+              "message": {
+                "content": null,
+                "role": "assistant",
+                "tool_calls": [
+                  {
+                    "function": {
+                      "arguments": "{\"path\":\"django/contrib/auth/forms.py\",\"start\":150,\"end\":360}",
+                      "name": "view"
+                    },
+                    "id": "call_pkf0RtrTCXv9dpRuH2ouo2cn",
+                    "type": "function"
+                  }
+                ],
+                "function_call": null,
+                "provider_specific_fields": {
+                  "refusal": null
+                },
+                "annotations": []
+              },
+              "provider_specific_fields": {}
+            }
+          ],
+          "usage": {
+            "completion_tokens": 29,
+            "prompt_tokens": 3388,
+            "total_tokens": 3417,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 0,
+              "rejected_prediction_tokens": 0
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cached_tokens": 3200
+            }
+          },
+          "moderation": null,
+          "service_tier": "flex"
+        },
+        "cost": 9.25e-05,
+        "timestamp": 1793530899.818851
+      }
+    },
+    {
+      "content": "django/contrib/auth/forms.py (lines 150-299 of 435)\n   150          if password:\n   151              password.help_text = password.help_text.format('../password/')\n   152          user_permissions = self.fields.get('user_permissions')\n   153          if user_permissions:\n   154              user_permissions.queryset = user_permissions.queryset.select_related('content_type')\n   155  \n   156      def clean_password(self):\n   157          # Regardless of what the user provides, return the initial value.\n   158          # This is done here, rather than on the field, because the\n   159          # field does not have access to the initial value\n   160          return self.initial.get('password')\n   161  \n   162  \n   163  class AuthenticationForm(forms.Form):\n   164      \"\"\"\n   165      Base class for authenticating users. Extend this to get a form that accepts\n   166      username/password logins.\n   167      \"\"\"\n   168      username = UsernameField(widget=forms.TextInput(attrs={'autofocus': True}))\n   169      password = forms.CharField(\n   170          label=_(\"Password\"),\n   171          strip=False,\n   172          widget=forms.PasswordInput(attrs={'autocomplete': 'current-password'}),\n   173      )\n   174  \n   175      error_messages = {\n   176          'invalid_login': _(\n   177              \"Please enter a correct %(username)s and password. Note that both \"\n   178              \"fields may be case-sensitive.\"\n   179          ),\n   180          'inactive': _(\"This account is inactive.\"),\n   181      }\n   182  \n   183      def __init__(self, request=None, *args, **kwargs):\n   184          \"\"\"\n   185          The 'request' parameter is set for custom auth use by subclasses.\n   186          The form data comes in via the standard 'data' kwarg.\n   187          \"\"\"\n   188          self.request = request\n   189          self.user_cache = None\n   190          super().__init__(*args, **kwargs)\n   191  \n   192          # Set the max length and label for the \"username\" field.\n   193          self.username_field = UserModel._meta.get_field(UserModel.USERNAME_FIELD)\n   194          self.fields['username'].max_length = self.username_field.max_length or 254\n   195          if self.fields['username'].label is None:\n   196              self.fields['username'].label = capfirst(self.username_field.verbose_name)\n   197  \n   198      def clean(self):\n   199          username = self.cleaned_data.get('username')\n   200          password = self.cleaned_data.get('password')\n   201  \n   202          if username is not None and password:\n   203              self.user_cache = authenticate(self.request, username=username, password=password)\n   204              if self.user_cache is None:\n   205                  raise self.get_invalid_login_error()\n   206              else:\n   207                  self.confirm_login_allowed(self.user_cache)\n   208  \n   209          return self.cleaned_data\n   210  \n   211      def confirm_login_allowed(self, user):\n   212          \"\"\"\n   213          Controls whether the given User may log in. This is a policy setting,\n   214          independent of end-user authentication. This default behavior is to\n   215          allow login by active users, and reject login by inactive users.\n   216  \n   217          If the given user cannot log in, this method should raise a\n   218          ``forms.ValidationError``.\n   219  \n   220          If the given user may log in, this method should return None.\n   221          \"\"\"\n   222          if not user.is_active:\n   223              raise forms.ValidationError(\n   224                  self.error_messages['inactive'],\n   225                  code='inactive',\n   226              )\n   227  \n   228      def get_user(self):\n   229          return self.user_cache\n   230  \n   231      def get_invalid_login_error(self):\n   232          return forms.ValidationError(\n   233              self.error_messages['invalid_login'],\n   234              code='invalid_login',\n   235              params={'username': self.username_field.verbose_name},\n   236          )\n   237  \n   238  \n   239  class PasswordResetForm(forms.Form):\n   240      email = forms.EmailField(\n   241          label=_(\"Email\"),\n   242          max_length=254,\n   243          widget=forms.EmailInput(attrs={'autocomplete': 'email'})\n   244      )\n   245  \n   246      def send_mail(self, subject_template_name, email_template_name,\n   247                    context, from_email, to_email, html_email_template_name=None):\n   248          \"\"\"\n   249          Send a django.core.mail.EmailMultiAlternatives to `to_email`.\n   250          \"\"\"\n   251          subject = loader.render_to_string(subject_template_name, context)\n   252          # Email subject *must not* contain newlines\n   253          subject = ''.join(subject.splitlines())\n   254          body = loader.render_to_string(email_template_name, context)\n   255  \n   256          email_message = EmailMultiAlternatives(subject, body, from_email, [to_email])\n   257          if html_email_template_name is not None:\n   258              html_email = loader.render_to_string(html_email_template_name, context)\n   259              email_message.attach_alternative(html_email, 'text/html')\n   260  \n   261          email_message.send()\n   262  \n   263      def get_users(self, email):\n   264          \"\"\"Given an email, return matching user(s) who should receive a reset.\n   265  \n   266          This allows subclasses to more easily customize the default policies\n   267          that prevent inactive users and users with unusable passwords from\n   268          resetting their password.\n   269          \"\"\"\n   270          active_users = UserModel._default_manager.filter(**{\n   271              '%s__iexact' % UserModel.get_email_field_name(): email,\n   272              'is_active': True,\n   273          })\n   274          return (u for u in active_users if u.has_usable_password())\n   275  \n   276      def save(self, domain_override=None,\n   277               subject_template_name='registration/password_reset_subject.txt',\n   278               email_template_name='registration/password_reset_email.html',\n   279               use_https=False, token_generator=default_token_generator,\n   280               from_email=None, request=None, html_email_template_name=None,\n   281               extra_email_context=None):\n   282          \"\"\"\n   283          Generate a one-use only link for resetting password and send it to the\n   284          user.\n   285          \"\"\"\n   286          email = self.cleaned_data[\"email\"]\n   287          for user in self.get_users(email):\n   288              if not domain_override:\n   289                  current_site = get_current_site(request)\n   290                  site_name = current_site.name\n   291                  domain = current_site.domain\n   292              else:\n   293                  site_name = domain = domain_override\n   294              context = {\n   295                  'email': email,\n   296                  'domain': domain,\n   297                  'site_name': site_name,\n   298                  'uid': urlsafe_base64_encode(force_bytes(user.pk)),\n   299                  'user': user,",
+      "extra": {
+        "raw_output": "django/contrib/auth/forms.py (lines 150-299 of 435)\n   150          if password:\n   151              password.help_text = password.help_text.format('../password/')\n   152          user_permissions = self.fields.get('user_permissions')\n   153          if user_permissions:\n   154              user_permissions.queryset = user_permissions.queryset.select_related('content_type')\n   155  \n   156      def clean_password(self):\n   157          # Regardless of what the user provides, return the initial value.\n   158          # This is done here, rather than on the field, because the\n   159          # field does not have access to the initial value\n   160          return self.initial.get('password')\n   161  \n   162  \n   163  class AuthenticationForm(forms.Form):\n   164      \"\"\"\n   165      Base class for authenticating users. Extend this to get a form that accepts\n   166      username/password logins.\n   167      \"\"\"\n   168      username = UsernameField(widget=forms.TextInput(attrs={'autofocus': True}))\n   169      password = forms.CharField(\n   170          label=_(\"Password\"),\n   171          strip=False,\n   172          widget=forms.PasswordInput(attrs={'autocomplete': 'current-password'}),\n   173      )\n   174  \n   175      error_messages = {\n   176          'invalid_login': _(\n   177              \"Please enter a correct %(username)s and password. Note that both \"\n   178              \"fields may be case-sensitive.\"\n   179          ),\n   180          'inactive': _(\"This account is inactive.\"),\n   181      }\n   182  \n   183      def __init__(self, request=None, *args, **kwargs):\n   184          \"\"\"\n   185          The 'request' parameter is set for custom auth use by subclasses.\n   186          The form data comes in via the standard 'data' kwarg.\n   187          \"\"\"\n   188          self.request = request\n   189          self.user_cache = None\n   190          super().__init__(*args, **kwargs)\n   191  \n   192          # Set the max length and label for the \"username\" field.\n   193          self.username_field = UserModel._meta.get_field(UserModel.USERNAME_FIELD)\n   194          self.fields['username'].max_length = self.username_field.max_length or 254\n   195          if self.fields['username'].label is None:\n   196              self.fields['username'].label = capfirst(self.username_field.verbose_name)\n   197  \n   198      def clean(self):\n   199          username = self.cleaned_data.get('username')\n   200          password = self.cleaned_data.get('password')\n   201  \n   202          if username is not None and password:\n   203              self.user_cache = authenticate(self.request, username=username, password=password)\n   204              if self.user_cache is None:\n   205                  raise self.get_invalid_login_error()\n   206              else:\n   207                  self.confirm_login_allowed(self.user_cache)\n   208  \n   209          return self.cleaned_data\n   210  \n   211      def confirm_login_allowed(self, user):\n   212          \"\"\"\n   213          Controls whether the given User may log in. This is a policy setting,\n   214          independent of end-user authentication. This default behavior is to\n   215          allow login by active users, and reject login by inactive users.\n   216  \n   217          If the given user cannot log in, this method should raise a\n   218          ``forms.ValidationError``.\n   219  \n   220          If the given user may log in, this method should return None.\n   221          \"\"\"\n   222          if not user.is_active:\n   223              raise forms.ValidationError(\n   224                  self.error_messages['inactive'],\n   225                  code='inactive',\n   226              )\n   227  \n   228      def get_user(self):\n   229          return self.user_cache\n   230  \n   231      def get_invalid_login_error(self):\n   232          return forms.ValidationError(\n   233              self.error_messages['invalid_login'],\n   234              code='invalid_login',\n   235              params={'username': self.username_field.verbose_name},\n   236          )\n   237  \n   238  \n   239  class PasswordResetForm(forms.Form):\n   240      email = forms.EmailField(\n   241          label=_(\"Email\"),\n   242          max_length=254,\n   243          widget=forms.EmailInput(attrs={'autocomplete': 'email'})\n   244      )\n   245  \n   246      def send_mail(self, subject_template_name, email_template_name,\n   247                    context, from_email, to_email, html_email_template_name=None):\n   248          \"\"\"\n   249          Send a django.core.mail.EmailMultiAlternatives to `to_email`.\n   250          \"\"\"\n   251          subject = loader.render_to_string(subject_template_name, context)\n   252          # Email subject *must not* contain newlines\n   253          subject = ''.join(subject.splitlines())\n   254          body = loader.render_to_string(email_template_name, context)\n   255  \n   256          email_message = EmailMultiAlternatives(subject, body, from_email, [to_email])\n   257          if html_email_template_name is not None:\n   258              html_email = loader.render_to_string(html_email_template_name, context)\n   259              email_message.attach_alternative(html_email, 'text/html')\n   260  \n   261          email_message.send()\n   262  \n   263      def get_users(self, email):\n   264          \"\"\"Given an email, return matching user(s) who should receive a reset.\n   265  \n   266          This allows subclasses to more easily customize the default policies\n   267          that prevent inactive users and users with unusable passwords from\n   268          resetting their password.\n   269          \"\"\"\n   270          active_users = UserModel._default_manager.filter(**{\n   271              '%s__iexact' % UserModel.get_email_field_name(): email,\n   272              'is_active': True,\n   273          })\n   274          return (u for u in active_users if u.has_usable_password())\n   275  \n   276      def save(self, domain_override=None,\n   277               subject_template_name='registration/password_reset_subject.txt',\n   278               email_template_name='registration/password_reset_email.html',\n   279               use_https=False, token_generator=default_token_generator,\n   280               from_email=None, request=None, html_email_template_name=None,\n   281               extra_email_context=None):\n   282          \"\"\"\n   283          Generate a one-use only link for resetting password and send it to the\n   284          user.\n   285          \"\"\"\n   286          email = self.cleaned_data[\"email\"]\n   287          for user in self.get_users(email):\n   288              if not domain_override:\n   289                  current_site = get_current_site(request)\n   290                  site_name = current_site.name\n   291                  domain = current_site.domain\n   292              else:\n   293                  site_name = domain = domain_override\n   294              context = {\n   295                  'email': email,\n   296                  'domain': domain,\n   297                  'site_name': site_name,\n   298                  'uid': urlsafe_base64_encode(force_bytes(user.pk)),\n   299                  'user': user,",
+        "returncode": 0,
+        "timestamp": 1793530900.957387,
+        "exception_info": ""
+      },
+      "tool_call_id": "call_pkf0RtrTCXv9dpRuH2ouo2cn",
+      "role": "tool"
+    },
+    {
+      "content": null,
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\"path\":\"tests/auth_tests/test_forms.py\",\"start\":1,\"end\":380}",
+            "name": "view"
+          },
+          "id": "call_Q4t0m3mlHhNeenzFXVBaLQzX",
+          "type": "function"
+        }
+      ],
+      "function_call": null,
+      "provider_specific_fields": {
+        "refusal": null
+      },
+      "annotations": [],
+      "extra": {
+        "actions": [
+          {
+            "tool": "view",
+            "args": {
+              "path": "tests/auth_tests/test_forms.py",
+              "start": 1,
+              "end": 380
+            },
+            "tool_call_id": "call_Q4t0m3mlHhNeenzFXVBaLQzX",
+            "command": "view {\"path\": \"tests/auth_tests/test_forms.py\", \"start\": 1, \"end\": 380}"
+          }
+        ],
+        "response": {
+          "id": "chatcmpl-EfNbhDyW8uFNNlFVRB36J4A3P9YDP",
+          "created": 1793530901,
+          "model": "gpt-5-mini-2025-08-07",
+          "object": "chat.completion",
+          "system_fingerprint": null,
+          "choices": [
+            {
+              "finish_reason": "tool_calls",
+              "index": 0,
+              "message": {
+                "content": null,
+                "role": "assistant",
+                "tool_calls": [
+                  {
+                    "function": {
+                      "arguments": "{\"path\":\"tests/auth_tests/test_forms.py\",\"start\":1,\"end\":380}",
+                      "name": "view"
+                    },
+                    "id": "call_Q4t0m3mlHhNeenzFXVBaLQzX",
+                    "type": "function"
+                  }
+                ],
+                "function_call": null,
+                "provider_specific_fields": {
+                  "refusal": null
+                },
+                "annotations": []
+              },
+              "provider_specific_fields": {}
+            }
+          ],
+          "usage": {
+            "completion_tokens": 547,
+            "prompt_tokens": 5057,
+            "total_tokens": 5604,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 512,
+              "rejected_prediction_tokens": 0
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cached_tokens": 2560
+            }
+          },
+          "moderation": null,
+          "service_tier": "flex"
+        },
+        "cost": 0.000891125,
+        "timestamp": 1793530905.288584
+      }
+    },
+    {
+      "content": "tests/auth_tests/test_forms.py (lines 1-150 of 1050)\n     1  import datetime\n     2  import re\n     3  from unittest import mock\n     4  \n     5  from django import forms\n     6  from django.contrib.auth.forms import (\n     7      AdminPasswordChangeForm, AuthenticationForm, PasswordChangeForm,\n     8      PasswordResetForm, ReadOnlyPasswordHashField, ReadOnlyPasswordHashWidget,\n     9      SetPasswordForm, UserChangeForm, UserCreationForm,\n    10  )\n    11  from django.contrib.auth.models import User\n    12  from django.contrib.auth.signals import user_login_failed\n    13  from django.contrib.sites.models import Site\n    14  from django.core import mail\n    15  from django.core.mail import EmailMultiAlternatives\n    16  from django.forms.fields import CharField, Field, IntegerField\n    17  from django.test import SimpleTestCase, TestCase, override_settings\n    18  from django.utils import translation\n    19  from django.utils.text import capfirst\n    20  from django.utils.translation import gettext as _\n    21  \n    22  from .models.custom_user import (\n    23      CustomUser, CustomUserWithoutIsActiveField, ExtensionUser,\n    24  )\n    25  from .models.with_custom_email_field import CustomEmailField\n    26  from .models.with_integer_username import IntegerUsernameUser\n    27  from .settings import AUTH_TEMPLATES\n    28  \n    29  \n    30  class TestDataMixin:\n    31  \n    32      @classmethod\n    33      def setUpTestData(cls):\n    34          cls.u1 = User.objects.create_user(username='testclient', password='password', email='testclient@example.com')\n    35          cls.u2 = User.objects.create_user(username='inactive', password='password', is_active=False)\n    36          cls.u3 = User.objects.create_user(username='staff', password='password')\n    37          cls.u4 = User.objects.create(username='empty_password', password='')\n    38          cls.u5 = User.objects.create(username='unmanageable_password', password='$')\n    39          cls.u6 = User.objects.create(username='unknown_password', password='foo$bar')\n    40  \n    41  \n    42  class UserCreationFormTest(TestDataMixin, TestCase):\n    43  \n    44      def test_user_already_exists(self):\n    45          data = {\n    46              'username': 'testclient',\n    47              'password1': 'test123',\n    48              'password2': 'test123',\n    49          }\n    50          form = UserCreationForm(data)\n    51          self.assertFalse(form.is_valid())\n    52          self.assertEqual(form[\"username\"].errors,\n    53                           [str(User._meta.get_field('username').error_messages['unique'])])\n    54  \n    55      def test_invalid_data(self):\n    56          data = {\n    57              'username': 'jsmith!',\n    58              'password1': 'test123',\n    59              'password2': 'test123',\n    60          }\n    61          form = UserCreationForm(data)\n    62          self.assertFalse(form.is_valid())\n    63          validator = next(v for v in User._meta.get_field('username').validators if v.code == 'invalid')\n    64          self.assertEqual(form[\"username\"].errors, [str(validator.message)])\n    65  \n    66      def test_password_verification(self):\n    67          # The verification password is incorrect.\n    68          data = {\n    69              'username': 'jsmith',\n    70              'password1': 'test123',\n    71              'password2': 'test',\n    72          }\n    73          form = UserCreationForm(data)\n    74          self.assertFalse(form.is_valid())\n    75          self.assertEqual(form[\"password2\"].errors,\n    76                           [str(form.error_messages['password_mismatch'])])\n    77  \n    78      def test_both_passwords(self):\n    79          # One (or both) passwords weren't given\n    80          data = {'username': 'jsmith'}\n    81          form = UserCreationForm(data)\n    82          required_error = [str(Field.default_error_messages['required'])]\n    83          self.assertFalse(form.is_valid())\n    84          self.assertEqual(form['password1'].errors, required_error)\n    85          self.assertEqual(form['password2'].errors, required_error)\n    86  \n    87          data['password2'] = 'test123'\n    88          form = UserCreationForm(data)\n    89          self.assertFalse(form.is_valid())\n    90          self.assertEqual(form['password1'].errors, required_error)\n    91          self.assertEqual(form['password2'].errors, [])\n    92  \n    93      @mock.patch('django.contrib.auth.password_validation.password_changed')\n    94      def test_success(self, password_changed):\n    95          # The success case.\n    96          data = {\n    97              'username': 'jsmith@example.com',\n    98              'password1': 'test123',\n    99              'password2': 'test123',\n   100          }\n   101          form = UserCreationForm(data)\n   102          self.assertTrue(form.is_valid())\n   103          form.save(commit=False)\n   104          self.assertEqual(password_changed.call_count, 0)\n   105          u = form.save()\n   106          self.assertEqual(password_changed.call_count, 1)\n   107          self.assertEqual(repr(u), '<User: jsmith@example.com>')\n   108  \n   109      def test_unicode_username(self):\n   110          data = {\n   111              'username': '\u5b9d',\n   112              'password1': 'test123',\n   113              'password2': 'test123',\n   114          }\n   115          form = UserCreationForm(data)\n   116          self.assertTrue(form.is_valid())\n   117          u = form.save()\n   118          self.assertEqual(u.username, '\u5b9d')\n   119  \n   120      def test_normalize_username(self):\n   121          # The normalization happens in AbstractBaseUser.clean() and ModelForm\n   122          # validation calls Model.clean().\n   123          ohm_username = 'test\u2126'  # U+2126 OHM SIGN\n   124          data = {\n   125              'username': ohm_username,\n   126              'password1': 'pwd2',\n   127              'password2': 'pwd2',\n   128          }\n   129          form = UserCreationForm(data)\n   130          self.assertTrue(form.is_valid())\n   131          user = form.save()\n   132          self.assertNotEqual(user.username, ohm_username)\n   133          self.assertEqual(user.username, 'test\u03a9')  # U+03A9 GREEK CAPITAL LETTER OMEGA\n   134  \n   135      def test_duplicate_normalized_unicode(self):\n   136          \"\"\"\n   137          To prevent almost identical usernames, visually identical but differing\n   138          by their unicode code points only, Unicode NFKC normalization should\n   139          make appear them equal to Django.\n   140          \"\"\"\n   141          omega_username = 'iamthe\u03a9'  # U+03A9 GREEK CAPITAL LETTER OMEGA\n   142          ohm_username = 'iamthe\u2126'  # U+2126 OHM SIGN\n   143          self.assertNotEqual(omega_username, ohm_username)\n   144          User.objects.create_user(username=omega_username, password='pwd')\n   145          data = {\n   146              'username': ohm_username,\n   147              'password1': 'pwd2',\n   148              'password2': 'pwd2',\n   149          }\n   150          form = UserCreationForm(data)",
+      "extra": {
+        "raw_output": "tests/auth_tests/test_forms.py (lines 1-150 of 1050)\n     1  import datetime\n     2  import re\n     3  from unittest import mock\n     4  \n     5  from django import forms\n     6  from django.contrib.auth.forms import (\n     7      AdminPasswordChangeForm, AuthenticationForm, PasswordChangeForm,\n     8      PasswordResetForm, ReadOnlyPasswordHashField, ReadOnlyPasswordHashWidget,\n     9      SetPasswordForm, UserChangeForm, UserCreationForm,\n    10  )\n    11  from django.contrib.auth.models import User\n    12  from django.contrib.auth.signals import user_login_failed\n    13  from django.contrib.sites.models import Site\n    14  from django.core import mail\n    15  from django.core.mail import EmailMultiAlternatives\n    16  from django.forms.fields import CharField, Field, IntegerField\n    17  from django.test import SimpleTestCase, TestCase, override_settings\n    18  from django.utils import translation\n    19  from django.utils.text import capfirst\n    20  from django.utils.translation import gettext as _\n    21  \n    22  from .models.custom_user import (\n    23      CustomUser, CustomUserWithoutIsActiveField, ExtensionUser,\n    24  )\n    25  from .models.with_custom_email_field import CustomEmailField\n    26  from .models.with_integer_username import IntegerUsernameUser\n    27  from .settings import AUTH_TEMPLATES\n    28  \n    29  \n    30  class TestDataMixin:\n    31  \n    32      @classmethod\n    33      def setUpTestData(cls):\n    34          cls.u1 = User.objects.create_user(username='testclient', password='password', email='testclient@example.com')\n    35          cls.u2 = User.objects.create_user(username='inactive', password='password', is_active=False)\n    36          cls.u3 = User.objects.create_user(username='staff', password='password')\n    37          cls.u4 = User.objects.create(username='empty_password', password='')\n    38          cls.u5 = User.objects.create(username='unmanageable_password', password='$')\n    39          cls.u6 = User.objects.create(username='unknown_password', password='foo$bar')\n    40  \n    41  \n    42  class UserCreationFormTest(TestDataMixin, TestCase):\n    43  \n    44      def test_user_already_exists(self):\n    45          data = {\n    46              'username': 'testclient',\n    47              'password1': 'test123',\n    48              'password2': 'test123',\n    49          }\n    50          form = UserCreationForm(data)\n    51          self.assertFalse(form.is_valid())\n    52          self.assertEqual(form[\"username\"].errors,\n    53                           [str(User._meta.get_field('username').error_messages['unique'])])\n    54  \n    55      def test_invalid_data(self):\n    56          data = {\n    57              'username': 'jsmith!',\n    58              'password1': 'test123',\n    59              'password2': 'test123',\n    60          }\n    61          form = UserCreationForm(data)\n    62          self.assertFalse(form.is_valid())\n    63          validator = next(v for v in User._meta.get_field('username').validators if v.code == 'invalid')\n    64          self.assertEqual(form[\"username\"].errors, [str(validator.message)])\n    65  \n    66      def test_password_verification(self):\n    67          # The verification password is incorrect.\n    68          data = {\n    69              'username': 'jsmith',\n    70              'password1': 'test123',\n    71              'password2': 'test',\n    72          }\n    73          form = UserCreationForm(data)\n    74          self.assertFalse(form.is_valid())\n    75          self.assertEqual(form[\"password2\"].errors,\n    76                           [str(form.error_messages['password_mismatch'])])\n    77  \n    78      def test_both_passwords(self):\n    79          # One (or both) passwords weren't given\n    80          data = {'username': 'jsmith'}\n    81          form = UserCreationForm(data)\n    82          required_error = [str(Field.default_error_messages['required'])]\n    83          self.assertFalse(form.is_valid())\n    84          self.assertEqual(form['password1'].errors, required_error)\n    85          self.assertEqual(form['password2'].errors, required_error)\n    86  \n    87          data['password2'] = 'test123'\n    88          form = UserCreationForm(data)\n    89          self.assertFalse(form.is_valid())\n    90          self.assertEqual(form['password1'].errors, required_error)\n    91          self.assertEqual(form['password2'].errors, [])\n    92  \n    93      @mock.patch('django.contrib.auth.password_validation.password_changed')\n    94      def test_success(self, password_changed):\n    95          # The success case.\n    96          data = {\n    97              'username': 'jsmith@example.com',\n    98              'password1': 'test123',\n    99              'password2': 'test123',\n   100          }\n   101          form = UserCreationForm(data)\n   102          self.assertTrue(form.is_valid())\n   103          form.save(commit=False)\n   104          self.assertEqual(password_changed.call_count, 0)\n   105          u = form.save()\n   106          self.assertEqual(password_changed.call_count, 1)\n   107          self.assertEqual(repr(u), '<User: jsmith@example.com>')\n   108  \n   109      def test_unicode_username(self):\n   110          data = {\n   111              'username': '\u5b9d',\n   112              'password1': 'test123',\n   113              'password2': 'test123',\n   114          }\n   115          form = UserCreationForm(data)\n   116          self.assertTrue(form.is_valid())\n   117          u = form.save()\n   118          self.assertEqual(u.username, '\u5b9d')\n   119  \n   120      def test_normalize_username(self):\n   121          # The normalization happens in AbstractBaseUser.clean() and ModelForm\n   122          # validation calls Model.clean().\n   123          ohm_username = 'test\u2126'  # U+2126 OHM SIGN\n   124          data = {\n   125              'username': ohm_username,\n   126              'password1': 'pwd2',\n   127              'password2': 'pwd2',\n   128          }\n   129          form = UserCreationForm(data)\n   130          self.assertTrue(form.is_valid())\n   131          user = form.save()\n   132          self.assertNotEqual(user.username, ohm_username)\n   133          self.assertEqual(user.username, 'test\u03a9')  # U+03A9 GREEK CAPITAL LETTER OMEGA\n   134  \n   135      def test_duplicate_normalized_unicode(self):\n   136          \"\"\"\n   137          To prevent almost identical usernames, visually identical but differing\n   138          by their unicode code points only, Unicode NFKC normalization should\n   139          make appear them equal to Django.\n   140          \"\"\"\n   141          omega_username = 'iamthe\u03a9'  # U+03A9 GREEK CAPITAL LETTER OMEGA\n   142          ohm_username = 'iamthe\u2126'  # U+2126 OHM SIGN\n   143          self.assertNotEqual(omega_username, ohm_username)\n   144          User.objects.create_user(username=omega_username, password='pwd')\n   145          data = {\n   146              'username': ohm_username,\n   147              'password1': 'pwd2',\n   148              'password2': 'pwd2',\n   149          }\n   150          form = UserCreationForm(data)",
+        "returncode": 0,
+        "timestamp": 1793530906.38032,
+        "exception_info": ""
+      },
+      "tool_call_id": "call_Q4t0m3mlHhNeenzFXVBaLQzX",
+      "role": "tool"
+    },
+    {
+      "content": null,
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\"pattern\":\"def widget_attrs\",\"path\":\"django\"}",
+            "name": "search"
+          },
+          "id": "call_A2FABSb07RhLesb6HuAarf4e",
+          "type": "function"
+        }
+      ],
+      "function_call": null,
+      "provider_specific_fields": {
+        "refusal": null
+      },
+      "annotations": [],
+      "extra": {
+        "actions": [
+          {
+            "tool": "search",
+            "args": {
+              "pattern": "def widget_attrs",
+              "path": "django"
+            },
+            "tool_call_id": "call_A2FABSb07RhLesb6HuAarf4e",
+            "command": "search {\"pattern\": \"def widget_attrs\", \"path\": \"django\"}"
+          }
+        ],
+        "response": {
+          "id": "chatcmpl-EfNbn3QnNqgGuh5wYB3oPAcu9gZu1",
+          "created": 1793530907,
+          "model": "gpt-5-mini-2025-08-07",
+          "object": "chat.completion",
+          "system_fingerprint": null,
+          "choices": [
+            {
+              "finish_reason": "tool_calls",
+              "index": 0,
+              "message": {
+                "content": null,
+                "role": "assistant",
+                "tool_calls": [
+                  {
+                    "function": {
+                      "arguments": "{\"pattern\":\"def widget_attrs\",\"path\":\"django\"}",
+                      "name": "search"
+                    },
+                    "id": "call_A2FABSb07RhLesb6HuAarf4e",
+                    "type": "function"
+                  }
+                ],
+                "function_call": null,
+                "provider_specific_fields": {
+                  "refusal": null
+                },
+                "annotations": []
+              },
+              "provider_specific_fields": {}
+            }
+          ],
+          "usage": {
+            "completion_tokens": 92,
+            "prompt_tokens": 6867,
+            "total_tokens": 6959,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 64,
+              "rejected_prediction_tokens": 0
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cached_tokens": 4864
+            }
+          },
+          "moderation": null,
+          "service_tier": "flex"
+        },
+        "cost": 0.00040317500000000003,
+        "timestamp": 1793530908.184911
+      }
+    },
+    {
+      "content": "django/contrib/auth/forms.py:64:    def widget_attrs(self, widget):\ndjango/forms/fields.py:166:    def widget_attrs(self, widget):\ndjango/forms/fields.py:231:    def widget_attrs(self, widget):\ndjango/forms/fields.py:278:    def widget_attrs(self, widget):\ndjango/forms/fields.py:316:    def widget_attrs(self, widget):\ndjango/forms/fields.py:358:    def widget_attrs(self, widget):\ndjango/forms/fields.py:648:    def widget_attrs(self, widget):",
+      "extra": {
+        "raw_output": "django/contrib/auth/forms.py:64:    def widget_attrs(self, widget):\ndjango/forms/fields.py:166:    def widget_attrs(self, widget):\ndjango/forms/fields.py:231:    def widget_attrs(self, widget):\ndjango/forms/fields.py:278:    def widget_attrs(self, widget):\ndjango/forms/fields.py:316:    def widget_attrs(self, widget):\ndjango/forms/fields.py:358:    def widget_attrs(self, widget):\ndjango/forms/fields.py:648:    def widget_attrs(self, widget):",
+        "returncode": 0,
+        "timestamp": 1793530909.601412,
+        "exception_info": ""
+      },
+      "tool_call_id": "call_A2FABSb07RhLesb6HuAarf4e",
+      "role": "tool"
+    },
+    {
+      "content": null,
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\"path\":\"django/forms/fields.py\",\"start\":600,\"end\":740}",
+            "name": "view"
+          },
+          "id": "call_YhoWtgCuFhBkT4Tpz2wjsBck",
+          "type": "function"
+        }
+      ],
+      "function_call": null,
+      "provider_specific_fields": {
+        "refusal": null
+      },
+      "annotations": [],
+      "extra": {
+        "actions": [
+          {
+            "tool": "view",
+            "args": {
+              "path": "django/forms/fields.py",
+              "start": 600,
+              "end": 740
+            },
+            "tool_call_id": "call_YhoWtgCuFhBkT4Tpz2wjsBck",
+            "command": "view {\"path\": \"django/forms/fields.py\", \"start\": 600, \"end\": 740}"
+          }
+        ],
+        "response": {
+          "id": "chatcmpl-EfNbqYTIP26oyLZHRMzn6dDIqHaPc",
+          "created": 1793530910,
+          "model": "gpt-5-mini-2025-08-07",
+          "object": "chat.completion",
+          "system_fingerprint": null,
+          "choices": [
+            {
+              "finish_reason": "tool_calls",
+              "index": 0,
+              "message": {
+                "content": null,
+                "role": "assistant",
+                "tool_calls": [
+                  {
+                    "function": {
+                      "arguments": "{\"path\":\"django/forms/fields.py\",\"start\":600,\"end\":740}",
+                      "name": "view"
+                    },
+                    "id": "call_YhoWtgCuFhBkT4Tpz2wjsBck",
+                    "type": "function"
+                  }
+                ],
+                "function_call": null,
+                "provider_specific_fields": {
+                  "refusal": null
+                },
+                "annotations": []
+              },
+              "provider_specific_fields": {}
+            }
+          ],
+          "usage": {
+            "completion_tokens": 28,
+            "prompt_tokens": 7012,
+            "total_tokens": 7040,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 0,
+              "rejected_prediction_tokens": 0
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cached_tokens": 6656
+            }
+          },
+          "moderation": null,
+          "service_tier": "flex"
+        },
+        "cost": 0.0001557,
+        "timestamp": 1793530911.194273
+      }
+    },
+    {
+      "content": "django/forms/fields.py (lines 600-740 of 1202)\n   600              \"Upload a valid image. The file you uploaded was either not an \"\n   601              \"image or a corrupted image.\"\n   602          ),\n   603      }\n   604  \n   605      def to_python(self, data):\n   606          \"\"\"\n   607          Check that the file-upload field data contains a valid image (GIF, JPG,\n   608          PNG, etc. -- whatever Pillow supports).\n   609          \"\"\"\n   610          f = super().to_python(data)\n   611          if f is None:\n   612              return None\n   613  \n   614          from PIL import Image\n   615  \n   616          # We need to get a file object for Pillow. We might have a path or we might\n   617          # have to read the data into memory.\n   618          if hasattr(data, 'temporary_file_path'):\n   619              file = data.temporary_file_path()\n   620          else:\n   621              if hasattr(data, 'read'):\n   622                  file = BytesIO(data.read())\n   623              else:\n   624                  file = BytesIO(data['content'])\n   625  \n   626          try:\n   627              # load() could spot a truncated JPEG, but it loads the entire\n   628              # image in memory, which is a DoS vector. See #3848 and #18520.\n   629              image = Image.open(file)\n   630              # verify() must be called immediately after the constructor.\n   631              image.verify()\n   632  \n   633              # Annotating so subclasses can reuse it for their own validation\n   634              f.image = image\n   635              # Pillow doesn't detect the MIME type of all formats. In those\n   636              # cases, content_type will be None.\n   637              f.content_type = Image.MIME.get(image.format)\n   638          except Exception as exc:\n   639              # Pillow doesn't recognize it as an image.\n   640              raise ValidationError(\n   641                  self.error_messages['invalid_image'],\n   642                  code='invalid_image',\n   643              ) from exc\n   644          if hasattr(f, 'seek') and callable(f.seek):\n   645              f.seek(0)\n   646          return f\n   647  \n   648      def widget_attrs(self, widget):\n   649          attrs = super().widget_attrs(widget)\n   650          if isinstance(widget, FileInput) and 'accept' not in widget.attrs:\n   651              attrs.setdefault('accept', 'image/*')\n   652          return attrs\n   653  \n   654  \n   655  class URLField(CharField):\n   656      widget = URLInput\n   657      default_error_messages = {\n   658          'invalid': _('Enter a valid URL.'),\n   659      }\n   660      default_validators = [validators.URLValidator()]\n   661  \n   662      def __init__(self, **kwargs):\n   663          super().__init__(strip=True, **kwargs)\n   664  \n   665      def to_python(self, value):\n   666  \n   667          def split_url(url):\n   668              \"\"\"\n   669              Return a list of url parts via urlparse.urlsplit(), or raise\n   670              ValidationError for some malformed URLs.\n   671              \"\"\"\n   672              try:\n   673                  return list(urlsplit(url))\n   674              except ValueError:\n   675                  # urlparse.urlsplit can raise a ValueError with some\n   676                  # misformatted URLs.\n   677                  raise ValidationError(self.error_messages['invalid'], code='invalid')\n   678  \n   679          value = super().to_python(value)\n   680          if value:\n   681              url_fields = split_url(value)\n   682              if not url_fields[0]:\n   683                  # If no URL scheme given, assume http://\n   684                  url_fields[0] = 'http'\n   685              if not url_fields[1]:\n   686                  # Assume that if no domain is provided, that the path segment\n   687                  # contains the domain.\n   688                  url_fields[1] = url_fields[2]\n   689                  url_fields[2] = ''\n   690                  # Rebuild the url_fields list, since the domain segment may now\n   691                  # contain the path too.\n   692                  url_fields = split_url(urlunsplit(url_fields))\n   693              value = urlunsplit(url_fields)\n   694          return value\n   695  \n   696  \n   697  class BooleanField(Field):\n   698      widget = CheckboxInput\n   699  \n   700      def to_python(self, value):\n   701          \"\"\"Return a Python boolean object.\"\"\"\n   702          # Explicitly check for the string 'False', which is what a hidden field\n   703          # will submit for False. Also check for '0', since this is what\n   704          # RadioSelect will provide. Because bool(\"True\") == bool('1') == True,\n   705          # we don't need to handle that explicitly.\n   706          if isinstance(value, str) and value.lower() in ('false', '0'):\n   707              value = False\n   708          else:\n   709              value = bool(value)\n   710          return super().to_python(value)\n   711  \n   712      def validate(self, value):\n   713          if not value and self.required:\n   714              raise ValidationError(self.error_messages['required'], code='required')\n   715  \n   716      def has_changed(self, initial, data):\n   717          if self.disabled:\n   718              return False\n   719          # Sometimes data or initial may be a string equivalent of a boolean\n   720          # so we should run it through to_python first to get a boolean value\n   721          return self.to_python(initial) != self.to_python(data)\n   722  \n   723  \n   724  class NullBooleanField(BooleanField):\n   725      \"\"\"\n   726      A field whose valid values are None, True, and False. Clean invalid values\n   727      to None.\n   728      \"\"\"\n   729      widget = NullBooleanSelect\n   730  \n   731      def to_python(self, value):\n   732          \"\"\"\n   733          Explicitly check for the string 'True' and 'False', which is what a\n   734          hidden field will submit for True and False, for 'true' and 'false',\n   735          which are likely to be returned by JavaScript serializations of forms,\n   736          and for '1' and '0', which is what a RadioField will submit. Unlike\n   737          the Booleanfield, this field must check for True because it doesn't\n   738          use the bool() function.\n   739          \"\"\"\n   740          if value in (True, 'True', 'true', '1'):",
+      "extra": {
+        "raw_output": "django/forms/fields.py (lines 600-740 of 1202)\n   600              \"Upload a valid image. The file you uploaded was either not an \"\n   601              \"image or a corrupted image.\"\n   602          ),\n   603      }\n   604  \n   605      def to_python(self, data):\n   606          \"\"\"\n   607          Check that the file-upload field data contains a valid image (GIF, JPG,\n   608          PNG, etc. -- whatever Pillow supports).\n   609          \"\"\"\n   610          f = super().to_python(data)\n   611          if f is None:\n   612              return None\n   613  \n   614          from PIL import Image\n   615  \n   616          # We need to get a file object for Pillow. We might have a path or we might\n   617          # have to read the data into memory.\n   618          if hasattr(data, 'temporary_file_path'):\n   619              file = data.temporary_file_path()\n   620          else:\n   621              if hasattr(data, 'read'):\n   622                  file = BytesIO(data.read())\n   623              else:\n   624                  file = BytesIO(data['content'])\n   625  \n   626          try:\n   627              # load() could spot a truncated JPEG, but it loads the entire\n   628              # image in memory, which is a DoS vector. See #3848 and #18520.\n   629              image = Image.open(file)\n   630              # verify() must be called immediately after the constructor.\n   631              image.verify()\n   632  \n   633              # Annotating so subclasses can reuse it for their own validation\n   634              f.image = image\n   635              # Pillow doesn't detect the MIME type of all formats. In those\n   636              # cases, content_type will be None.\n   637              f.content_type = Image.MIME.get(image.format)\n   638          except Exception as exc:\n   639              # Pillow doesn't recognize it as an image.\n   640              raise ValidationError(\n   641                  self.error_messages['invalid_image'],\n   642                  code='invalid_image',\n   643              ) from exc\n   644          if hasattr(f, 'seek') and callable(f.seek):\n   645              f.seek(0)\n   646          return f\n   647  \n   648      def widget_attrs(self, widget):\n   649          attrs = super().widget_attrs(widget)\n   650          if isinstance(widget, FileInput) and 'accept' not in widget.attrs:\n   651              attrs.setdefault('accept', 'image/*')\n   652          return attrs\n   653  \n   654  \n   655  class URLField(CharField):\n   656      widget = URLInput\n   657      default_error_messages = {\n   658          'invalid': _('Enter a valid URL.'),\n   659      }\n   660      default_validators = [validators.URLValidator()]\n   661  \n   662      def __init__(self, **kwargs):\n   663          super().__init__(strip=True, **kwargs)\n   664  \n   665      def to_python(self, value):\n   666  \n   667          def split_url(url):\n   668              \"\"\"\n   669              Return a list of url parts via urlparse.urlsplit(), or raise\n   670              ValidationError for some malformed URLs.\n   671              \"\"\"\n   672              try:\n   673                  return list(urlsplit(url))\n   674              except ValueError:\n   675                  # urlparse.urlsplit can raise a ValueError with some\n   676                  # misformatted URLs.\n   677                  raise ValidationError(self.error_messages['invalid'], code='invalid')\n   678  \n   679          value = super().to_python(value)\n   680          if value:\n   681              url_fields = split_url(value)\n   682              if not url_fields[0]:\n   683                  # If no URL scheme given, assume http://\n   684                  url_fields[0] = 'http'\n   685              if not url_fields[1]:\n   686                  # Assume that if no domain is provided, that the path segment\n   687                  # contains the domain.\n   688                  url_fields[1] = url_fields[2]\n   689                  url_fields[2] = ''\n   690                  # Rebuild the url_fields list, since the domain segment may now\n   691                  # contain the path too.\n   692                  url_fields = split_url(urlunsplit(url_fields))\n   693              value = urlunsplit(url_fields)\n   694          return value\n   695  \n   696  \n   697  class BooleanField(Field):\n   698      widget = CheckboxInput\n   699  \n   700      def to_python(self, value):\n   701          \"\"\"Return a Python boolean object.\"\"\"\n   702          # Explicitly check for the string 'False', which is what a hidden field\n   703          # will submit for False. Also check for '0', since this is what\n   704          # RadioSelect will provide. Because bool(\"True\") == bool('1') == True,\n   705          # we don't need to handle that explicitly.\n   706          if isinstance(value, str) and value.lower() in ('false', '0'):\n   707              value = False\n   708          else:\n   709              value = bool(value)\n   710          return super().to_python(value)\n   711  \n   712      def validate(self, value):\n   713          if not value and self.required:\n   714              raise ValidationError(self.error_messages['required'], code='required')\n   715  \n   716      def has_changed(self, initial, data):\n   717          if self.disabled:\n   718              return False\n   719          # Sometimes data or initial may be a string equivalent of a boolean\n   720          # so we should run it through to_python first to get a boolean value\n   721          return self.to_python(initial) != self.to_python(data)\n   722  \n   723  \n   724  class NullBooleanField(BooleanField):\n   725      \"\"\"\n   726      A field whose valid values are None, True, and False. Clean invalid values\n   727      to None.\n   728      \"\"\"\n   729      widget = NullBooleanSelect\n   730  \n   731      def to_python(self, value):\n   732          \"\"\"\n   733          Explicitly check for the string 'True' and 'False', which is what a\n   734          hidden field will submit for True and False, for 'true' and 'false',\n   735          which are likely to be returned by JavaScript serializations of forms,\n   736          and for '1' and '0', which is what a RadioField will submit. Unlike\n   737          the Booleanfield, this field must check for True because it doesn't\n   738          use the bool() function.\n   739          \"\"\"\n   740          if value in (True, 'True', 'true', '1'):",
+        "returncode": 0,
+        "timestamp": 1793530912.3513,
+        "exception_info": ""
+      },
+      "tool_call_id": "call_YhoWtgCuFhBkT4Tpz2wjsBck",
+      "role": "tool"
+    },
+    {
+      "content": null,
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\"pattern\":\"maxlength\",\"path\":\"\"}",
+            "name": "search"
+          },
+          "id": "call_GJNT3uNYW7Vcsi7DwDwWOpES",
+          "type": "function"
+        }
+      ],
+      "function_call": null,
+      "provider_specific_fields": {
+        "refusal": null
+      },
+      "annotations": [],
+      "extra": {
+        "actions": [
+          {
+            "tool": "search",
+            "args": {
+              "pattern": "maxlength",
+              "path": ""
+            },
+            "tool_call_id": "call_GJNT3uNYW7Vcsi7DwDwWOpES",
+            "command": "search {\"pattern\": \"maxlength\", \"path\": \"\"}"
+          }
+        ],
+        "response": {
+          "id": "chatcmpl-EfNbtpE20AbLCX8fi6nKkay4DWT0N",
+          "created": 1793530913,
+          "model": "gpt-5-mini-2025-08-07",
+          "object": "chat.completion",
+          "system_fingerprint": null,
+          "choices": [
+            {
+              "finish_reason": "tool_calls",
+              "index": 0,
+              "message": {
+                "content": null,
+                "role": "assistant",
+                "tool_calls": [
+                  {
+                    "function": {
+                      "arguments": "{\"pattern\":\"maxlength\",\"path\":\"\"}",
+                      "name": "search"
+                    },
+                    "id": "call_GJNT3uNYW7Vcsi7DwDwWOpES",
+                    "type": "function"
+                  }
+                ],
+                "function_call": null,
+                "provider_specific_fields": {
+                  "refusal": null
+                },
+                "annotations": []
+              },
+              "provider_specific_fields": {}
+            }
+          ],
+          "usage": {
+            "completion_tokens": 90,
+            "prompt_tokens": 8607,
+            "total_tokens": 8697,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 64,
+              "rejected_prediction_tokens": 0
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cached_tokens": 6912
+            }
+          },
+          "moderation": null,
+          "service_tier": "flex"
+        },
+        "cost": 0.000388275,
+        "timestamp": 1793530914.257536
+      }
+    },
+    {
+      "content": "django/contrib/admin/static/admin/js/inlines.js:189:                    input.prepopulate(dependencies, input.attr('maxlength'));\ndjango/contrib/admin/static/admin/js/inlines.js:256:                    input.prepopulate(dependencies, input.attr('maxlength'));\ndjango/contrib/admin/static/admin/js/inlines.min.js:7:c.attr(\"maxlength\"))})};d.formset({prefix:a.prefix,addText:a.addText,formCssClass:\"dynamic-\"+a.prefix,deleteCssClass:\"inline-deletelink\",deleteText:a.deleteText,emptyCssClass:\"empty-form\ndjango/contrib/admin/static/admin/js/inlines.min.js:9:e.length&&c.prepopulate(e,c.attr(\"maxlength\"))})};d.formset({prefix:a.prefix,addText:a.addText,formCssClass:\"dynamic-\"+a.prefix,deleteCssClass:\"inline-deletelink\",deleteText:a.deleteText\ndjango/contrib/gis/geos/mutable_list.py:50:    int _maxlength:\ndjango/contrib/gis/geos/mutable_list.py:58:    _maxlength = None\ndjango/contrib/gis/geos/mutable_list.py:221:        if self._maxlength is not None and newLen > self._maxlength:\ndjango/contrib/gis/geos/mutable_list.py:222:            raise ValueError('Cannot have more than %d items' % self._maxlength)\ndjango/contrib/gis/geos/point.py:11:    _maxlength = 3\ndjango/forms/fields.py:234:            # The HTML attribute is maxlength, not max_length.\ndjango/forms/fields.py:235:            attrs['maxlength'] = str(self.max_length)\ndocs/ref/forms/api.txt:442:    <tr><th><label for=\"id_subject\">Subject:</label></th><td><input id=\"id_subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required></td></tr>\ndocs/ref/forms/api.txt:459:    <tr><th><label for=\"id_subject\">Subject:</label></th><td><input id=\"id_subject\" type=\"text\" name=\"subject\" maxlength=\"100\" value=\"hello\" required></td></tr>\ndocs/ref/forms/api.txt:510:    '<p><label for=\"id_subject\">Subject:</label> <input id=\"id_subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required></p>\\n<p><label for=\"id_message\">Message:</label> <input type=\"text\" name=\"message\" id=\"i\ndocs/ref/forms/api.txt:512:    <p><label for=\"id_subject\">Subject:</label> <input id=\"id_subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required></p>\ndocs/ref/forms/api.txt:529:    '<li><label for=\"id_subject\">Subject:</label> <input id=\"id_subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required></li>\\n<li><label for=\"id_message\">Message:</label> <input type=\"text\" name=\"message\" id\ndocs/ref/forms/api.txt:531:    <li><label for=\"id_subject\">Subject:</label> <input id=\"id_subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required></li>\ndocs/ref/forms/api.txt:547:    '<tr><th><label for=\"id_subject\">Subject:</label></th><td><input id=\"id_subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required></td></tr>\\n<tr><th><label for=\"id_message\">Message:</label></th><td><input \ndocs/ref/forms/api.txt:549:    <tr><th><label for=\"id_subject\">Subject:</label></th><td><input id=\"id_subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required></td></tr>\ndocs/ref/forms/api.txt:622:    <tr><th>Subject:</th><td><input type=\"text\" name=\"subject\" maxlength=\"100\" required></td></tr>\ndocs/ref/forms/api.txt:627:    <li>Subject: <input type=\"text\" name=\"subject\" maxlength=\"100\" required></li>\ndocs/ref/forms/api.txt:632:    <p>Subject: <input type=\"text\" name=\"subject\" maxlength=\"100\" required></p>\ndocs/ref/forms/api.txt:643:    <tr><th><label for=\"subject\">Subject:</label></th><td><input id=\"subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required></td></tr>\ndocs/ref/forms/api.txt:648:    <li><label for=\"subject\">Subject:</label> <input id=\"subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required></li>\ndocs/ref/forms/api.txt:653:    <p><label for=\"subject\">Subject:</label> <input id=\"subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required></p>\ndocs/ref/forms/api.txt:666:    <tr><th><label for=\"id_for_subject\">Subject:</label></th><td><input id=\"id_for_subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required></td></tr>\ndocs/ref/forms/api.txt:671:    <li><label for=\"id_for_subject\">Subject:</label> <input id=\"id_for_subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required></li>\ndocs/ref/forms/api.txt:676:    <p><label for=\"id_for_subject\">Subject:</label> <input id=\"id_for_subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required></p>\ndocs/ref/forms/api.txt:696:    <li><label for=\"id_for_subject\">Subject</label> <input id=\"id_for_subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required></li>\ndocs/ref/forms/api.txt:702:    <li><label for=\"id_for_subject\">Subject -></label> <input id=\"id_for_subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required></li>\ndocs/ref/forms/api.txt:792:    <tr><th>Subject:</th><td><ul class=\"errorlist\"><li>This field is required.</li></ul><input type=\"text\" name=\"subject\" maxlength=\"100\" required></td></tr>\ndocs/ref/forms/api.txt:797:    <li><ul class=\"errorlist\"><li>This field is required.</li></ul>Subject: <input type=\"text\" name=\"subject\" maxlength=\"100\" required></li>\ndocs/ref/forms/api.txt:803:    <p>Subject: <input type=\"text\" name=\"subject\" maxlength=\"100\" required></p>\ndocs/ref/forms/api.txt:828:    <p>Subject: <input type=\"text\" name=\"subject\" maxlength=\"100\" required></p>\ndocs/ref/forms/api.txt:852:    <input id=\"id_subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required>\ndocs/ref/forms/api.txt:858:    <input id=\"id_subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required>\ndocs/ref/forms/api.txt:1172:    <li>Subject: <input type=\"text\" name=\"subject\" maxlength=\"100\" required></li>\ndocs/ref/forms/fields.txt:244:    <tr><th>Subject:</th><td><input type=\"text\" name=\"subject\" maxlength=\"100\" required><br><span class=\"helptext\">100 characters max.</span></td></tr>\ndocs/ref/forms/fields.txt:249:    <li>Subject: <input type=\"text\" name=\"subject\" maxlength=\"100\" required> <span class=\"helptext\">100 characters max.</span></li>\ndocs/ref/forms/fields.txt:254:    <p>Subject: <input type=\"text\" name=\"subject\" maxlength=\"100\" required> <span class=\"helptext\">100 characters max.</span></p>\ndocs/releases/1.0-porting-guide.txt:41:Rename ``maxlength`` to ``max_length``\ndocs/releases/1.0-porting-guide.txt:44:Rename your ``maxlength`` argument to ``max_length`` (this was changed to be\ndocs/releases/1.0-porting-guide.txt:93:        first_name = models.CharField(maxlength=30)\ndocs/releases/1.0-porting-guide.txt:94:        last_name = models.CharField(maxlength=30)\ndocs/releases/1.0-porting-guide.txt:95:        slug = models.CharField(maxlength=60, prepopulate_from=('first_name', 'last_name'))\ndocs/releases/1.0-porting-guide.txt:509:        title = models.CharField(maxlength=100)\ndocs/releases/1.7.txt:610:  include a ``maxlength`` attribute if the :class:`~django.db.models.TextField`\ndocs/topics/forms/formsets.txt:172:include HTML attributes such as ``maxlength`` for browser validation. However,\ndocs/topics/forms/index.txt:245:``maxlength=\"100\"`` on the HTML ``<input>`` (so the browser should prevent the\ndocs/topics/forms/index.txt:262:    <input id=\"your_name\" type=\"text\" name=\"your_name\" maxlength=\"100\" required>\n... 185 more matches; narrow the pattern or path",
+      "extra": {
+        "raw_output": "django/contrib/admin/static/admin/js/inlines.js:189:                    input.prepopulate(dependencies, input.attr('maxlength'));\ndjango/contrib/admin/static/admin/js/inlines.js:256:                    input.prepopulate(dependencies, input.attr('maxlength'));\ndjango/contrib/admin/static/admin/js/inlines.min.js:7:c.attr(\"maxlength\"))})};d.formset({prefix:a.prefix,addText:a.addText,formCssClass:\"dynamic-\"+a.prefix,deleteCssClass:\"inline-deletelink\",deleteText:a.deleteText,emptyCssClass:\"empty-form\ndjango/contrib/admin/static/admin/js/inlines.min.js:9:e.length&&c.prepopulate(e,c.attr(\"maxlength\"))})};d.formset({prefix:a.prefix,addText:a.addText,formCssClass:\"dynamic-\"+a.prefix,deleteCssClass:\"inline-deletelink\",deleteText:a.deleteText\ndjango/contrib/gis/geos/mutable_list.py:50:    int _maxlength:\ndjango/contrib/gis/geos/mutable_list.py:58:    _maxlength = None\ndjango/contrib/gis/geos/mutable_list.py:221:        if self._maxlength is not None and newLen > self._maxlength:\ndjango/contrib/gis/geos/mutable_list.py:222:            raise ValueError('Cannot have more than %d items' % self._maxlength)\ndjango/contrib/gis/geos/point.py:11:    _maxlength = 3\ndjango/forms/fields.py:234:            # The HTML attribute is maxlength, not max_length.\ndjango/forms/fields.py:235:            attrs['maxlength'] = str(self.max_length)\ndocs/ref/forms/api.txt:442:    <tr><th><label for=\"id_subject\">Subject:</label></th><td><input id=\"id_subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required></td></tr>\ndocs/ref/forms/api.txt:459:    <tr><th><label for=\"id_subject\">Subject:</label></th><td><input id=\"id_subject\" type=\"text\" name=\"subject\" maxlength=\"100\" value=\"hello\" required></td></tr>\ndocs/ref/forms/api.txt:510:    '<p><label for=\"id_subject\">Subject:</label> <input id=\"id_subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required></p>\\n<p><label for=\"id_message\">Message:</label> <input type=\"text\" name=\"message\" id=\"i\ndocs/ref/forms/api.txt:512:    <p><label for=\"id_subject\">Subject:</label> <input id=\"id_subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required></p>\ndocs/ref/forms/api.txt:529:    '<li><label for=\"id_subject\">Subject:</label> <input id=\"id_subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required></li>\\n<li><label for=\"id_message\">Message:</label> <input type=\"text\" name=\"message\" id\ndocs/ref/forms/api.txt:531:    <li><label for=\"id_subject\">Subject:</label> <input id=\"id_subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required></li>\ndocs/ref/forms/api.txt:547:    '<tr><th><label for=\"id_subject\">Subject:</label></th><td><input id=\"id_subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required></td></tr>\\n<tr><th><label for=\"id_message\">Message:</label></th><td><input \ndocs/ref/forms/api.txt:549:    <tr><th><label for=\"id_subject\">Subject:</label></th><td><input id=\"id_subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required></td></tr>\ndocs/ref/forms/api.txt:622:    <tr><th>Subject:</th><td><input type=\"text\" name=\"subject\" maxlength=\"100\" required></td></tr>\ndocs/ref/forms/api.txt:627:    <li>Subject: <input type=\"text\" name=\"subject\" maxlength=\"100\" required></li>\ndocs/ref/forms/api.txt:632:    <p>Subject: <input type=\"text\" name=\"subject\" maxlength=\"100\" required></p>\ndocs/ref/forms/api.txt:643:    <tr><th><label for=\"subject\">Subject:</label></th><td><input id=\"subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required></td></tr>\ndocs/ref/forms/api.txt:648:    <li><label for=\"subject\">Subject:</label> <input id=\"subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required></li>\ndocs/ref/forms/api.txt:653:    <p><label for=\"subject\">Subject:</label> <input id=\"subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required></p>\ndocs/ref/forms/api.txt:666:    <tr><th><label for=\"id_for_subject\">Subject:</label></th><td><input id=\"id_for_subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required></td></tr>\ndocs/ref/forms/api.txt:671:    <li><label for=\"id_for_subject\">Subject:</label> <input id=\"id_for_subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required></li>\ndocs/ref/forms/api.txt:676:    <p><label for=\"id_for_subject\">Subject:</label> <input id=\"id_for_subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required></p>\ndocs/ref/forms/api.txt:696:    <li><label for=\"id_for_subject\">Subject</label> <input id=\"id_for_subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required></li>\ndocs/ref/forms/api.txt:702:    <li><label for=\"id_for_subject\">Subject -></label> <input id=\"id_for_subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required></li>\ndocs/ref/forms/api.txt:792:    <tr><th>Subject:</th><td><ul class=\"errorlist\"><li>This field is required.</li></ul><input type=\"text\" name=\"subject\" maxlength=\"100\" required></td></tr>\ndocs/ref/forms/api.txt:797:    <li><ul class=\"errorlist\"><li>This field is required.</li></ul>Subject: <input type=\"text\" name=\"subject\" maxlength=\"100\" required></li>\ndocs/ref/forms/api.txt:803:    <p>Subject: <input type=\"text\" name=\"subject\" maxlength=\"100\" required></p>\ndocs/ref/forms/api.txt:828:    <p>Subject: <input type=\"text\" name=\"subject\" maxlength=\"100\" required></p>\ndocs/ref/forms/api.txt:852:    <input id=\"id_subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required>\ndocs/ref/forms/api.txt:858:    <input id=\"id_subject\" type=\"text\" name=\"subject\" maxlength=\"100\" required>\ndocs/ref/forms/api.txt:1172:    <li>Subject: <input type=\"text\" name=\"subject\" maxlength=\"100\" required></li>\ndocs/ref/forms/fields.txt:244:    <tr><th>Subject:</th><td><input type=\"text\" name=\"subject\" maxlength=\"100\" required><br><span class=\"helptext\">100 characters max.</span></td></tr>\ndocs/ref/forms/fields.txt:249:    <li>Subject: <input type=\"text\" name=\"subject\" maxlength=\"100\" required> <span class=\"helptext\">100 characters max.</span></li>\ndocs/ref/forms/fields.txt:254:    <p>Subject: <input type=\"text\" name=\"subject\" maxlength=\"100\" required> <span class=\"helptext\">100 characters max.</span></p>\ndocs/releases/1.0-porting-guide.txt:41:Rename ``maxlength`` to ``max_length``\ndocs/releases/1.0-porting-guide.txt:44:Rename your ``maxlength`` argument to ``max_length`` (this was changed to be\ndocs/releases/1.0-porting-guide.txt:93:        first_name = models.CharField(maxlength=30)\ndocs/releases/1.0-porting-guide.txt:94:        last_name = models.CharField(maxlength=30)\ndocs/releases/1.0-porting-guide.txt:95:        slug = models.CharField(maxlength=60, prepopulate_from=('first_name', 'last_name'))\ndocs/releases/1.0-porting-guide.txt:509:        title = models.CharField(maxlength=100)\ndocs/releases/1.7.txt:610:  include a ``maxlength`` attribute if the :class:`~django.db.models.TextField`\ndocs/topics/forms/formsets.txt:172:include HTML attributes such as ``maxlength`` for browser validation. However,\ndocs/topics/forms/index.txt:245:``maxlength=\"100\"`` on the HTML ``<input>`` (so the browser should prevent the\ndocs/topics/forms/index.txt:262:    <input id=\"your_name\" type=\"text\" name=\"your_name\" maxlength=\"100\" required>\n... 185 more matches; narrow the pattern or path",
+        "returncode": 0,
+        "timestamp": 1793530915.552244,
+        "exception_info": ""
+      },
+      "tool_call_id": "call_GJNT3uNYW7Vcsi7DwDwWOpES",
+      "role": "tool"
+    },
+    {
+      "content": null,
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\"path\":\"django/forms/fields.py\",\"start\":200,\"end\":280}",
+            "name": "view"
+          },
+          "id": "call_LHyOfl8fPWCF1n4I2EguMiw0",
+          "type": "function"
+        }
+      ],
+      "function_call": null,
+      "provider_specific_fields": {
+        "refusal": null
+      },
+      "annotations": [],
+      "extra": {
+        "actions": [
+          {
+            "tool": "view",
+            "args": {
+              "path": "django/forms/fields.py",
+              "start": 200,
+              "end": 280
+            },
+            "tool_call_id": "call_LHyOfl8fPWCF1n4I2EguMiw0",
+            "command": "view {\"path\": \"django/forms/fields.py\", \"start\": 200, \"end\": 280}"
+          }
+        ],
+        "response": {
+          "id": "chatcmpl-EfNbwhluFUclmiKmUl0K0UmG346Pg",
+          "created": 1793530916,
+          "model": "gpt-5-mini-2025-08-07",
+          "object": "chat.completion",
+          "system_fingerprint": null,
+          "choices": [
+            {
+              "finish_reason": "tool_calls",
+              "index": 0,
+              "message": {
+                "content": null,
+                "role": "assistant",
+                "tool_calls": [
+                  {
+                    "function": {
+                      "arguments": "{\"path\":\"django/forms/fields.py\",\"start\":200,\"end\":280}",
+                      "name": "view"
+                    },
+                    "id": "call_LHyOfl8fPWCF1n4I2EguMiw0",
+                    "type": "function"
+                  }
+                ],
+                "function_call": null,
+                "provider_specific_fields": {
+                  "refusal": null
+                },
+                "annotations": []
+              },
+              "provider_specific_fields": {}
+            }
+          ],
+          "usage": {
+            "completion_tokens": 28,
+            "prompt_tokens": 10619,
+            "total_tokens": 10647,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 0,
+              "rejected_prediction_tokens": 0
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cached_tokens": 8448
+            }
+          },
+          "moderation": null,
+          "service_tier": "flex"
+        },
+        "cost": 0.00040497499999999996,
+        "timestamp": 1793530917.231909
+      }
+    },
+    {
+      "content": "django/forms/fields.py (lines 200-280 of 1202)\n   200      def __deepcopy__(self, memo):\n   201          result = copy.copy(self)\n   202          memo[id(self)] = result\n   203          result.widget = copy.deepcopy(self.widget, memo)\n   204          result.validators = self.validators[:]\n   205          return result\n   206  \n   207  \n   208  class CharField(Field):\n   209      def __init__(self, *, max_length=None, min_length=None, strip=True, empty_value='', **kwargs):\n   210          self.max_length = max_length\n   211          self.min_length = min_length\n   212          self.strip = strip\n   213          self.empty_value = empty_value\n   214          super().__init__(**kwargs)\n   215          if min_length is not None:\n   216              self.validators.append(validators.MinLengthValidator(int(min_length)))\n   217          if max_length is not None:\n   218              self.validators.append(validators.MaxLengthValidator(int(max_length)))\n   219          self.validators.append(validators.ProhibitNullCharactersValidator())\n   220  \n   221      def to_python(self, value):\n   222          \"\"\"Return a string.\"\"\"\n   223          if value not in self.empty_values:\n   224              value = str(value)\n   225              if self.strip:\n   226                  value = value.strip()\n   227          if value in self.empty_values:\n   228              return self.empty_value\n   229          return value\n   230  \n   231      def widget_attrs(self, widget):\n   232          attrs = super().widget_attrs(widget)\n   233          if self.max_length is not None and not widget.is_hidden:\n   234              # The HTML attribute is maxlength, not max_length.\n   235              attrs['maxlength'] = str(self.max_length)\n   236          if self.min_length is not None and not widget.is_hidden:\n   237              # The HTML attribute is minlength, not min_length.\n   238              attrs['minlength'] = str(self.min_length)\n   239          return attrs\n   240  \n   241  \n   242  class IntegerField(Field):\n   243      widget = NumberInput\n   244      default_error_messages = {\n   245          'invalid': _('Enter a whole number.'),\n   246      }\n   247      re_decimal = re.compile(r'\\.0*\\s*$')\n   248  \n   249      def __init__(self, *, max_value=None, min_value=None, **kwargs):\n   250          self.max_value, self.min_value = max_value, min_value\n   251          if kwargs.get('localize') and self.widget == NumberInput:\n   252              # Localized number input is not well supported on most browsers\n   253              kwargs.setdefault('widget', super().widget)\n   254          super().__init__(**kwargs)\n   255  \n   256          if max_value is not None:\n   257              self.validators.append(validators.MaxValueValidator(max_value))\n   258          if min_value is not None:\n   259              self.validators.append(validators.MinValueValidator(min_value))\n   260  \n   261      def to_python(self, value):\n   262          \"\"\"\n   263          Validate that int() can be called on the input. Return the result\n   264          of int() or None for empty values.\n   265          \"\"\"\n   266          value = super().to_python(value)\n   267          if value in self.empty_values:\n   268              return None\n   269          if self.localize:\n   270              value = formats.sanitize_separators(value)\n   271          # Strip trailing decimal and zeros.\n   272          try:\n   273              value = int(self.re_decimal.sub('', str(value)))\n   274          except (ValueError, TypeError):\n   275              raise ValidationError(self.error_messages['invalid'], code='invalid')\n   276          return value\n   277  \n   278      def widget_attrs(self, widget):\n   279          attrs = super().widget_attrs(widget)\n   280          if isinstance(widget, NumberInput):",
+      "extra": {
+        "raw_output": "django/forms/fields.py (lines 200-280 of 1202)\n   200      def __deepcopy__(self, memo):\n   201          result = copy.copy(self)\n   202          memo[id(self)] = result\n   203          result.widget = copy.deepcopy(self.widget, memo)\n   204          result.validators = self.validators[:]\n   205          return result\n   206  \n   207  \n   208  class CharField(Field):\n   209      def __init__(self, *, max_length=None, min_length=None, strip=True, empty_value='', **kwargs):\n   210          self.max_length = max_length\n   211          self.min_length = min_length\n   212          self.strip = strip\n   213          self.empty_value = empty_value\n   214          super().__init__(**kwargs)\n   215          if min_length is not None:\n   216              self.validators.append(validators.MinLengthValidator(int(min_length)))\n   217          if max_length is not None:\n   218              self.validators.append(validators.MaxLengthValidator(int(max_length)))\n   219          self.validators.append(validators.ProhibitNullCharactersValidator())\n   220  \n   221      def to_python(self, value):\n   222          \"\"\"Return a string.\"\"\"\n   223          if value not in self.empty_values:\n   224              value = str(value)\n   225              if self.strip:\n   226                  value = value.strip()\n   227          if value in self.empty_values:\n   228              return self.empty_value\n   229          return value\n   230  \n   231      def widget_attrs(self, widget):\n   232          attrs = super().widget_attrs(widget)\n   233          if self.max_length is not None and not widget.is_hidden:\n   234              # The HTML attribute is maxlength, not max_length.\n   235              attrs['maxlength'] = str(self.max_length)\n   236          if self.min_length is not None and not widget.is_hidden:\n   237              # The HTML attribute is minlength, not min_length.\n   238              attrs['minlength'] = str(self.min_length)\n   239          return attrs\n   240  \n   241  \n   242  class IntegerField(Field):\n   243      widget = NumberInput\n   244      default_error_messages = {\n   245          'invalid': _('Enter a whole number.'),\n   246      }\n   247      re_decimal = re.compile(r'\\.0*\\s*$')\n   248  \n   249      def __init__(self, *, max_value=None, min_value=None, **kwargs):\n   250          self.max_value, self.min_value = max_value, min_value\n   251          if kwargs.get('localize') and self.widget == NumberInput:\n   252              # Localized number input is not well supported on most browsers\n   253              kwargs.setdefault('widget', super().widget)\n   254          super().__init__(**kwargs)\n   255  \n   256          if max_value is not None:\n   257              self.validators.append(validators.MaxValueValidator(max_value))\n   258          if min_value is not None:\n   259              self.validators.append(validators.MinValueValidator(min_value))\n   260  \n   261      def to_python(self, value):\n   262          \"\"\"\n   263          Validate that int() can be called on the input. Return the result\n   264          of int() or None for empty values.\n   265          \"\"\"\n   266          value = super().to_python(value)\n   267          if value in self.empty_values:\n   268              return None\n   269          if self.localize:\n   270              value = formats.sanitize_separators(value)\n   271          # Strip trailing decimal and zeros.\n   272          try:\n   273              value = int(self.re_decimal.sub('', str(value)))\n   274          except (ValueError, TypeError):\n   275              raise ValidationError(self.error_messages['invalid'], code='invalid')\n   276          return value\n   277  \n   278      def widget_attrs(self, widget):\n   279          attrs = super().widget_attrs(widget)\n   280          if isinstance(widget, NumberInput):",
+        "returncode": 0,
+        "timestamp": 1793530918.257739,
+        "exception_info": ""
+      },
+      "tool_call_id": "call_LHyOfl8fPWCF1n4I2EguMiw0",
+      "role": "tool"
+    },
+    {
+      "content": null,
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\"pattern\":\"class TextInput\",\"path\":\"django/forms\"}",
+            "name": "search"
+          },
+          "id": "call_CEvkhw0Ta4z8DK8u5wWGBCd9",
+          "type": "function"
+        }
+      ],
+      "function_call": null,
+      "provider_specific_fields": {
+        "refusal": null
+      },
+      "annotations": [],
+      "extra": {
+        "actions": [
+          {
+            "tool": "search",
+            "args": {
+              "pattern": "class TextInput",
+              "path": "django/forms"
+            },
+            "tool_call_id": "call_CEvkhw0Ta4z8DK8u5wWGBCd9",
+            "command": "search {\"pattern\": \"class TextInput\", \"path\": \"django/forms\"}"
+          }
+        ],
+        "response": {
+          "id": "chatcmpl-EfNbzO2MRA5wPObSGFfQLT7r5gmtV",
+          "created": 1793530919,
+          "model": "gpt-5-mini-2025-08-07",
+          "object": "chat.completion",
+          "system_fingerprint": null,
+          "choices": [
+            {
+              "finish_reason": "tool_calls",
+              "index": 0,
+              "message": {
+                "content": null,
+                "role": "assistant",
+                "tool_calls": [
+                  {
+                    "function": {
+                      "arguments": "{\"pattern\":\"class TextInput\",\"path\":\"django/forms\"}",
+                      "name": "search"
+                    },
+                    "id": "call_CEvkhw0Ta4z8DK8u5wWGBCd9",
+                    "type": "function"
+                  }
+                ],
+                "function_call": null,
+                "provider_specific_fields": {
+                  "refusal": null
+                },
+                "annotations": []
+              },
+              "provider_specific_fields": {}
+            }
+          ],
+          "usage": {
+            "completion_tokens": 605,
+            "prompt_tokens": 11568,
+            "total_tokens": 12173,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 576,
+              "rejected_prediction_tokens": 0
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cached_tokens": 10496
+            }
+          },
+          "moderation": null,
+          "service_tier": "flex"
+        },
+        "cost": 0.0008702,
+        "timestamp": 1793530922.56651
+      }
+    },
+    {
+      "content": "django/forms/widgets.py:298:class TextInput(Input):",
+      "extra": {
+        "raw_output": "django/forms/widgets.py:298:class TextInput(Input):",
+        "returncode": 0,
+        "timestamp": 1793530923.711864,
+        "exception_info": ""
+      },
+      "tool_call_id": "call_CEvkhw0Ta4z8DK8u5wWGBCd9",
+      "role": "tool"
+    },
+    {
+      "content": null,
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\"path\":\"django/forms/widgets.py\",\"start\":1,\"end\":240}",
+            "name": "view"
+          },
+          "id": "call_rtFu8TCSuVD98NrxWmWWZywc",
+          "type": "function"
+        }
+      ],
+      "function_call": null,
+      "provider_specific_fields": {
+        "refusal": null
+      },
+      "annotations": [],
+      "extra": {
+        "actions": [
+          {
+            "tool": "view",
+            "args": {
+              "path": "django/forms/widgets.py",
+              "start": 1,
+              "end": 240
+            },
+            "tool_call_id": "call_rtFu8TCSuVD98NrxWmWWZywc",
+            "command": "view {\"path\": \"django/forms/widgets.py\", \"start\": 1, \"end\": 240}"
+          }
+        ],
+        "response": {
+          "id": "chatcmpl-EfNc4WST1ShbklDgz8DiruAiXva0x",
+          "created": 1793530924,
+          "model": "gpt-5-mini-2025-08-07",
+          "object": "chat.completion",
+          "system_fingerprint": null,
+          "choices": [
+            {
+              "finish_reason": "tool_calls",
+              "index": 0,
+              "message": {
+                "content": null,
+                "role": "assistant",
+                "tool_calls": [
+                  {
+                    "function": {
+                      "arguments": "{\"path\":\"django/forms/widgets.py\",\"start\":1,\"end\":240}",
+                      "name": "view"
+                    },
+                    "id": "call_rtFu8TCSuVD98NrxWmWWZywc",
+                    "type": "function"
+                  }
+                ],
+                "function_call": null,
+                "provider_specific_fields": {
+                  "refusal": null
+                },
+                "annotations": []
+              },
+              "provider_specific_fields": {}
+            }
+          ],
+          "usage": {
+            "completion_tokens": 27,
+            "prompt_tokens": 11613,
+            "total_tokens": 11640,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 0,
+              "rejected_prediction_tokens": 0
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cached_tokens": 11392
+            }
+          },
+          "moderation": null,
+          "service_tier": "flex"
+        },
+        "cost": 0.000197025,
+        "timestamp": 1793530925.3289652
+      }
+    },
+    {
+      "content": "django/forms/widgets.py (lines 1-150 of 1088)\n     1  \"\"\"\n     2  HTML Widget classes\n     3  \"\"\"\n     4  \n     5  import copy\n     6  import datetime\n     7  import re\n     8  import warnings\n     9  from collections import defaultdict\n    10  from itertools import chain\n    11  \n    12  from django.conf import settings\n    13  from django.forms.utils import to_current_timezone\n    14  from django.templatetags.static import static\n    15  from django.utils import datetime_safe, formats\n    16  from django.utils.datastructures import OrderedSet\n    17  from django.utils.dates import MONTHS\n    18  from django.utils.formats import get_format\n    19  from django.utils.html import format_html, html_safe\n    20  from django.utils.safestring import mark_safe\n    21  from django.utils.topological_sort import (\n    22      CyclicDependencyError, stable_topological_sort,\n    23  )\n    24  from django.utils.translation import gettext_lazy as _\n    25  \n    26  from .renderers import get_default_renderer\n    27  \n    28  __all__ = (\n    29      'Media', 'MediaDefiningClass', 'Widget', 'TextInput', 'NumberInput',\n    30      'EmailInput', 'URLInput', 'PasswordInput', 'HiddenInput',\n    31      'MultipleHiddenInput', 'FileInput', 'ClearableFileInput', 'Textarea',\n    32      'DateInput', 'DateTimeInput', 'TimeInput', 'CheckboxInput', 'Select',\n    33      'NullBooleanSelect', 'SelectMultiple', 'RadioSelect',\n    34      'CheckboxSelectMultiple', 'MultiWidget', 'SplitDateTimeWidget',\n    35      'SplitHiddenDateTimeWidget', 'SelectDateWidget',\n    36  )\n    37  \n    38  MEDIA_TYPES = ('css', 'js')\n    39  \n    40  \n    41  class MediaOrderConflictWarning(RuntimeWarning):\n    42      pass\n    43  \n    44  \n    45  @html_safe\n    46  class Media:\n    47      def __init__(self, media=None, css=None, js=None):\n    48          if media is not None:\n    49              css = getattr(media, 'css', {})\n    50              js = getattr(media, 'js', [])\n    51          else:\n    52              if css is None:\n    53                  css = {}\n    54              if js is None:\n    55                  js = []\n    56          self._css_lists = [css]\n    57          self._js_lists = [js]\n    58  \n    59      def __repr__(self):\n    60          return 'Media(css=%r, js=%r)' % (self._css, self._js)\n    61  \n    62      def __str__(self):\n    63          return self.render()\n    64  \n    65      @property\n    66      def _css(self):\n    67          css = defaultdict(list)\n    68          for css_list in self._css_lists:\n    69              for medium, sublist in css_list.items():\n    70                  css[medium].append(sublist)\n    71          return {medium: self.merge(*lists) for medium, lists in css.items()}\n    72  \n    73      @property\n    74      def _js(self):\n    75          return self.merge(*self._js_lists)\n    76  \n    77      def render(self):\n    78          return mark_safe('\\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))\n    79  \n    80      def render_js(self):\n    81          return [\n    82              format_html(\n    83                  '<script type=\"text/javascript\" src=\"{}\"></script>',\n    84                  self.absolute_path(path)\n    85              ) for path in self._js\n    86          ]\n    87  \n    88      def render_css(self):\n    89          # To keep rendering order consistent, we can't just iterate over items().\n    90          # We need to sort the keys, and iterate over the sorted list.\n    91          media = sorted(self._css)\n    92          return chain.from_iterable([\n    93              format_html(\n    94                  '<link href=\"{}\" type=\"text/css\" media=\"{}\" rel=\"stylesheet\">',\n    95                  self.absolute_path(path), medium\n    96              ) for path in self._css[medium]\n    97          ] for medium in media)\n    98  \n    99      def absolute_path(self, path):\n   100          \"\"\"\n   101          Given a relative or absolute path to a static asset, return an absolute\n   102          path. An absolute path will be returned unchanged while a relative path\n   103          will be passed to django.templatetags.static.static().\n   104          \"\"\"\n   105          if path.startswith(('http://', 'https://', '/')):\n   106              return path\n   107          return static(path)\n   108  \n   109      def __getitem__(self, name):\n   110          \"\"\"Return a Media object that only contains media of the given type.\"\"\"\n   111          if name in MEDIA_TYPES:\n   112              return Media(**{str(name): getattr(self, '_' + name)})\n   113          raise KeyError('Unknown media type \"%s\"' % name)\n   114  \n   115      @staticmethod\n   116      def merge(*lists):\n   117          \"\"\"\n   118          Merge lists while trying to keep the relative order of the elements.\n   119          Warn if the lists have the same elements in a different relative order.\n   120  \n   121          For static assets it can be important to have them included in the DOM\n   122          in a certain order. In JavaScript you may not be able to reference a\n   123          global or in CSS you might want to override a style.\n   124          \"\"\"\n   125          dependency_graph = defaultdict(set)\n   126          all_items = OrderedSet()\n   127          for list_ in filter(None, lists):\n   128              head = list_[0]\n   129              # The first items depend on nothing but have to be part of the\n   130              # dependency graph to be included in the result.\n   131              dependency_graph.setdefault(head, set())\n   132              for item in list_:\n   133                  all_items.add(item)\n   134                  # No self dependencies\n   135                  if head != item:\n   136                      dependency_graph[item].add(head)\n   137                  head = item\n   138          try:\n   139              return stable_topological_sort(all_items, dependency_graph)\n   140          except CyclicDependencyError:\n   141              warnings.warn(\n   142                  'Detected duplicate Media files in an opposite order: {}'.format(\n   143                      ', '.join(repr(l) for l in lists)\n   144                  ), MediaOrderConflictWarning,\n   145              )\n   146              return list(all_items)\n   147  \n   148      def __add__(self, other):\n   149          combined = Media()\n   150          combined._css_lists = self._css_lists + other._css_lists",
+      "extra": {
+        "raw_output": "django/forms/widgets.py (lines 1-150 of 1088)\n     1  \"\"\"\n     2  HTML Widget classes\n     3  \"\"\"\n     4  \n     5  import copy\n     6  import datetime\n     7  import re\n     8  import warnings\n     9  from collections import defaultdict\n    10  from itertools import chain\n    11  \n    12  from django.conf import settings\n    13  from django.forms.utils import to_current_timezone\n    14  from django.templatetags.static import static\n    15  from django.utils import datetime_safe, formats\n    16  from django.utils.datastructures import OrderedSet\n    17  from django.utils.dates import MONTHS\n    18  from django.utils.formats import get_format\n    19  from django.utils.html import format_html, html_safe\n    20  from django.utils.safestring import mark_safe\n    21  from django.utils.topological_sort import (\n    22      CyclicDependencyError, stable_topological_sort,\n    23  )\n    24  from django.utils.translation import gettext_lazy as _\n    25  \n    26  from .renderers import get_default_renderer\n    27  \n    28  __all__ = (\n    29      'Media', 'MediaDefiningClass', 'Widget', 'TextInput', 'NumberInput',\n    30      'EmailInput', 'URLInput', 'PasswordInput', 'HiddenInput',\n    31      'MultipleHiddenInput', 'FileInput', 'ClearableFileInput', 'Textarea',\n    32      'DateInput', 'DateTimeInput', 'TimeInput', 'CheckboxInput', 'Select',\n    33      'NullBooleanSelect', 'SelectMultiple', 'RadioSelect',\n    34      'CheckboxSelectMultiple', 'MultiWidget', 'SplitDateTimeWidget',\n    35      'SplitHiddenDateTimeWidget', 'SelectDateWidget',\n    36  )\n    37  \n    38  MEDIA_TYPES = ('css', 'js')\n    39  \n    40  \n    41  class MediaOrderConflictWarning(RuntimeWarning):\n    42      pass\n    43  \n    44  \n    45  @html_safe\n    46  class Media:\n    47      def __init__(self, media=None, css=None, js=None):\n    48          if media is not None:\n    49              css = getattr(media, 'css', {})\n    50              js = getattr(media, 'js', [])\n    51          else:\n    52              if css is None:\n    53                  css = {}\n    54              if js is None:\n    55                  js = []\n    56          self._css_lists = [css]\n    57          self._js_lists = [js]\n    58  \n    59      def __repr__(self):\n    60          return 'Media(css=%r, js=%r)' % (self._css, self._js)\n    61  \n    62      def __str__(self):\n    63          return self.render()\n    64  \n    65      @property\n    66      def _css(self):\n    67          css = defaultdict(list)\n    68          for css_list in self._css_lists:\n    69              for medium, sublist in css_list.items():\n    70                  css[medium].append(sublist)\n    71          return {medium: self.merge(*lists) for medium, lists in css.items()}\n    72  \n    73      @property\n    74      def _js(self):\n    75          return self.merge(*self._js_lists)\n    76  \n    77      def render(self):\n    78          return mark_safe('\\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))\n    79  \n    80      def render_js(self):\n    81          return [\n    82              format_html(\n    83                  '<script type=\"text/javascript\" src=\"{}\"></script>',\n    84                  self.absolute_path(path)\n    85              ) for path in self._js\n    86          ]\n    87  \n    88      def render_css(self):\n    89          # To keep rendering order consistent, we can't just iterate over items().\n    90          # We need to sort the keys, and iterate over the sorted list.\n    91          media = sorted(self._css)\n    92          return chain.from_iterable([\n    93              format_html(\n    94                  '<link href=\"{}\" type=\"text/css\" media=\"{}\" rel=\"stylesheet\">',\n    95                  self.absolute_path(path), medium\n    96              ) for path in self._css[medium]\n    97          ] for medium in media)\n    98  \n    99      def absolute_path(self, path):\n   100          \"\"\"\n   101          Given a relative or absolute path to a static asset, return an absolute\n   102          path. An absolute path will be returned unchanged while a relative path\n   103          will be passed to django.templatetags.static.static().\n   104          \"\"\"\n   105          if path.startswith(('http://', 'https://', '/')):\n   106              return path\n   107          return static(path)\n   108  \n   109      def __getitem__(self, name):\n   110          \"\"\"Return a Media object that only contains media of the given type.\"\"\"\n   111          if name in MEDIA_TYPES:\n   112              return Media(**{str(name): getattr(self, '_' + name)})\n   113          raise KeyError('Unknown media type \"%s\"' % name)\n   114  \n   115      @staticmethod\n   116      def merge(*lists):\n   117          \"\"\"\n   118          Merge lists while trying to keep the relative order of the elements.\n   119          Warn if the lists have the same elements in a different relative order.\n   120  \n   121          For static assets it can be important to have them included in the DOM\n   122          in a certain order. In JavaScript you may not be able to reference a\n   123          global or in CSS you might want to override a style.\n   124          \"\"\"\n   125          dependency_graph = defaultdict(set)\n   126          all_items = OrderedSet()\n   127          for list_ in filter(None, lists):\n   128              head = list_[0]\n   129              # The first items depend on nothing but have to be part of the\n   130              # dependency graph to be included in the result.\n   131              dependency_graph.setdefault(head, set())\n   132              for item in list_:\n   133                  all_items.add(item)\n   134                  # No self dependencies\n   135                  if head != item:\n   136                      dependency_graph[item].add(head)\n   137                  head = item\n   138          try:\n   139              return stable_topological_sort(all_items, dependency_graph)\n   140          except CyclicDependencyError:\n   141              warnings.warn(\n   142                  'Detected duplicate Media files in an opposite order: {}'.format(\n   143                      ', '.join(repr(l) for l in lists)\n   144                  ), MediaOrderConflictWarning,\n   145              )\n   146              return list(all_items)\n   147  \n   148      def __add__(self, other):\n   149          combined = Media()\n   150          combined._css_lists = self._css_lists + other._css_lists",
+        "returncode": 0,
+        "timestamp": 1793530926.389334,
+        "exception_info": ""
+      },
+      "tool_call_id": "call_rtFu8TCSuVD98NrxWmWWZywc",
+      "role": "tool"
+    },
+    {
+      "content": null,
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\"pattern\":\"AuthenticationForm\",\"path\":\"tests\"}",
+            "name": "search"
+          },
+          "id": "call_UHDenrxsZavbtog0CBa3C04c",
+          "type": "function"
+        }
+      ],
+      "function_call": null,
+      "provider_specific_fields": {
+        "refusal": null
+      },
+      "annotations": [],
+      "extra": {
+        "actions": [
+          {
+            "tool": "search",
+            "args": {
+              "pattern": "AuthenticationForm",
+              "path": "tests"
+            },
+            "tool_call_id": "call_UHDenrxsZavbtog0CBa3C04c",
+            "command": "search {\"pattern\": \"AuthenticationForm\", \"path\": \"tests\"}"
+          }
+        ],
+        "response": {
+          "id": "chatcmpl-EfNc70NccFNjSE1f907TNOPC87ZmU",
+          "created": 1793530927,
+          "model": "gpt-5-mini-2025-08-07",
+          "object": "chat.completion",
+          "system_fingerprint": null,
+          "choices": [
+            {
+              "finish_reason": "tool_calls",
+              "index": 0,
+              "message": {
+                "content": null,
+                "role": "assistant",
+                "tool_calls": [
+                  {
+                    "function": {
+                      "arguments": "{\"pattern\":\"AuthenticationForm\",\"path\":\"tests\"}",
+                      "name": "search"
+                    },
+                    "id": "call_UHDenrxsZavbtog0CBa3C04c",
+                    "type": "function"
+                  }
+                ],
+                "function_call": null,
+                "provider_specific_fields": {
+                  "refusal": null
+                },
+                "annotations": []
+              },
+              "provider_specific_fields": {}
+            }
+          ],
+          "usage": {
+            "completion_tokens": 21,
+            "prompt_tokens": 13287,
+            "total_tokens": 13308,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 0,
+              "rejected_prediction_tokens": 0
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cached_tokens": 11520
+            }
+          },
+          "moderation": null,
+          "service_tier": "flex"
+        },
+        "cost": 0.000385875,
+        "timestamp": 1793530927.3805492
+      }
+    },
+    {
+      "content": "tests/admin_views/custom_has_permission_admin.py:6:from django.contrib.auth.forms import AuthenticationForm\ntests/admin_views/custom_has_permission_admin.py:13:class PermissionAdminAuthenticationForm(AuthenticationForm):\ntests/admin_views/custom_has_permission_admin.py:21:    login_form = PermissionAdminAuthenticationForm\ntests/admin_views/customadmin.py:15:    login_form = forms.CustomAdminAuthenticationForm\ntests/admin_views/forms.py:2:from django.contrib.admin.forms import AdminAuthenticationForm\ntests/admin_views/forms.py:6:class CustomAdminAuthenticationForm(AdminAuthenticationForm):\ntests/admin_views/test_forms.py:1:from django.contrib.admin.forms import AdminAuthenticationForm\ntests/admin_views/test_forms.py:9:class AdminAuthenticationFormTests(TestCase):\ntests/admin_views/test_forms.py:19:        form = AdminAuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:7:    AdminPasswordChangeForm, AuthenticationForm, PasswordChangeForm,\ntests/auth_tests/test_forms.py:283:class AuthenticationFormTest(TestDataMixin, TestCase):\ntests/auth_tests/test_forms.py:292:        form = AuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:308:        form = AuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:320:        form = AuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:339:            form = AuthenticationForm(fake_request, {\ntests/auth_tests/test_forms.py:355:            form = AuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:368:        class AuthenticationFormWithInactiveUsersOkay(AuthenticationForm):\ntests/auth_tests/test_forms.py:372:        form = AuthenticationFormWithInactiveUsersOkay(None, data)\ntests/auth_tests/test_forms.py:377:        class PickyAuthenticationForm(AuthenticationForm):\ntests/auth_tests/test_forms.py:383:        form = PickyAuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:391:        form = PickyAuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:401:        form = AuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:411:        form = AuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:424:        form = AuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:436:        form = AuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:442:        class CustomAuthenticationForm(AuthenticationForm):\ntests/auth_tests/test_forms.py:445:        form = CustomAuthenticationForm()\ntests/auth_tests/test_forms.py:450:        class CustomAuthenticationForm(AuthenticationForm):\ntests/auth_tests/test_forms.py:453:        form = CustomAuthenticationForm()\ntests/auth_tests/test_forms.py:458:        form = AuthenticationForm()\ntests/auth_tests/test_forms.py:463:        class CustomAuthenticationForm(AuthenticationForm):\ntests/auth_tests/test_forms.py:466:        form = CustomAuthenticationForm()\ntests/auth_tests/test_forms.py:474:        form = AuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:480:        class CustomAuthenticationForm(AuthenticationForm):\ntests/auth_tests/test_forms.py:488:        form = CustomAuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:496:        error = AuthenticationForm().get_invalid_login_error()\ntests/auth_tests/test_forms.py:507:        form = AuthenticationForm()\ntests/auth_tests/test_views.py:16:    AuthenticationForm, PasswordChangeForm, SetPasswordForm,\ntests/auth_tests/test_views.py:460:        self.assertFormError(response, AuthenticationForm.error_messages['invalid_login'] % {\ntests/auth_tests/test_views.py:568:        self.assertIsInstance(response.context['form'], AuthenticationForm)\ntests/auth_tests/urls.py:4:from django.contrib.auth.forms import AuthenticationForm\ntests/auth_tests/urls.py:15:class CustomRequestAuthenticationForm(AuthenticationForm):\ntests/auth_tests/urls.py:147:        views.LoginView.as_view(authentication_form=CustomRequestAuthenticationForm)),",
+      "extra": {
+        "raw_output": "tests/admin_views/custom_has_permission_admin.py:6:from django.contrib.auth.forms import AuthenticationForm\ntests/admin_views/custom_has_permission_admin.py:13:class PermissionAdminAuthenticationForm(AuthenticationForm):\ntests/admin_views/custom_has_permission_admin.py:21:    login_form = PermissionAdminAuthenticationForm\ntests/admin_views/customadmin.py:15:    login_form = forms.CustomAdminAuthenticationForm\ntests/admin_views/forms.py:2:from django.contrib.admin.forms import AdminAuthenticationForm\ntests/admin_views/forms.py:6:class CustomAdminAuthenticationForm(AdminAuthenticationForm):\ntests/admin_views/test_forms.py:1:from django.contrib.admin.forms import AdminAuthenticationForm\ntests/admin_views/test_forms.py:9:class AdminAuthenticationFormTests(TestCase):\ntests/admin_views/test_forms.py:19:        form = AdminAuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:7:    AdminPasswordChangeForm, AuthenticationForm, PasswordChangeForm,\ntests/auth_tests/test_forms.py:283:class AuthenticationFormTest(TestDataMixin, TestCase):\ntests/auth_tests/test_forms.py:292:        form = AuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:308:        form = AuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:320:        form = AuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:339:            form = AuthenticationForm(fake_request, {\ntests/auth_tests/test_forms.py:355:            form = AuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:368:        class AuthenticationFormWithInactiveUsersOkay(AuthenticationForm):\ntests/auth_tests/test_forms.py:372:        form = AuthenticationFormWithInactiveUsersOkay(None, data)\ntests/auth_tests/test_forms.py:377:        class PickyAuthenticationForm(AuthenticationForm):\ntests/auth_tests/test_forms.py:383:        form = PickyAuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:391:        form = PickyAuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:401:        form = AuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:411:        form = AuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:424:        form = AuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:436:        form = AuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:442:        class CustomAuthenticationForm(AuthenticationForm):\ntests/auth_tests/test_forms.py:445:        form = CustomAuthenticationForm()\ntests/auth_tests/test_forms.py:450:        class CustomAuthenticationForm(AuthenticationForm):\ntests/auth_tests/test_forms.py:453:        form = CustomAuthenticationForm()\ntests/auth_tests/test_forms.py:458:        form = AuthenticationForm()\ntests/auth_tests/test_forms.py:463:        class CustomAuthenticationForm(AuthenticationForm):\ntests/auth_tests/test_forms.py:466:        form = CustomAuthenticationForm()\ntests/auth_tests/test_forms.py:474:        form = AuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:480:        class CustomAuthenticationForm(AuthenticationForm):\ntests/auth_tests/test_forms.py:488:        form = CustomAuthenticationForm(None, data)\ntests/auth_tests/test_forms.py:496:        error = AuthenticationForm().get_invalid_login_error()\ntests/auth_tests/test_forms.py:507:        form = AuthenticationForm()\ntests/auth_tests/test_views.py:16:    AuthenticationForm, PasswordChangeForm, SetPasswordForm,\ntests/auth_tests/test_views.py:460:        self.assertFormError(response, AuthenticationForm.error_messages['invalid_login'] % {\ntests/auth_tests/test_views.py:568:        self.assertIsInstance(response.context['form'], AuthenticationForm)\ntests/auth_tests/urls.py:4:from django.contrib.auth.forms import AuthenticationForm\ntests/auth_tests/urls.py:15:class CustomRequestAuthenticationForm(AuthenticationForm):\ntests/auth_tests/urls.py:147:        views.LoginView.as_view(authentication_form=CustomRequestAuthenticationForm)),",
+        "returncode": 0,
+        "timestamp": 1793530928.609455,
+        "exception_info": ""
+      },
+      "tool_call_id": "call_UHDenrxsZavbtog0CBa3C04c",
+      "role": "tool"
+    },
+    {
+      "content": null,
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\"path\":\"tests/auth_tests/test_forms.py\",\"start\":280,\"end\":520}",
+            "name": "view"
+          },
+          "id": "call_bfxQEYnQstU8x8l1mw32yVZw",
+          "type": "function"
+        }
+      ],
+      "function_call": null,
+      "provider_specific_fields": {
+        "refusal": null
+      },
+      "annotations": [],
+      "extra": {
+        "actions": [
+          {
+            "tool": "view",
+            "args": {
+              "path": "tests/auth_tests/test_forms.py",
+              "start": 280,
+              "end": 520
+            },
+            "tool_call_id": "call_bfxQEYnQstU8x8l1mw32yVZw",
+            "command": "view {\"path\": \"tests/auth_tests/test_forms.py\", \"start\": 280, \"end\": 520}"
+          }
+        ],
+        "response": {
+          "id": "chatcmpl-EfNc9kk0DOZys9lbafDKFUMy7Wrkp",
+          "created": 1793530929,
+          "model": "gpt-5-mini-2025-08-07",
+          "object": "chat.completion",
+          "system_fingerprint": null,
+          "choices": [
+            {
+              "finish_reason": "tool_calls",
+              "index": 0,
+              "message": {
+                "content": null,
+                "role": "assistant",
+                "tool_calls": [
+                  {
+                    "function": {
+                      "arguments": "{\"path\":\"tests/auth_tests/test_forms.py\",\"start\":280,\"end\":520}",
+                      "name": "view"
+                    },
+                    "id": "call_bfxQEYnQstU8x8l1mw32yVZw",
+                    "type": "function"
+                  }
+                ],
+                "function_call": null,
+                "provider_specific_fields": {
+                  "refusal": null
+                },
+                "annotations": []
+              },
+              "provider_specific_fields": {}
+            }
+          ],
+          "usage": {
+            "completion_tokens": 29,
+            "prompt_tokens": 14120,
+            "total_tokens": 14149,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 0,
+              "rejected_prediction_tokens": 0
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cached_tokens": 13184
+            }
+          },
+          "moderation": null,
+          "service_tier": "flex"
+        },
+        "cost": 0.0003108,
+        "timestamp": 1793530929.748672
+      }
+    },
+    {
+      "content": "tests/auth_tests/test_forms.py (lines 280-429 of 1050)\n   280  # To verify that the login form rejects inactive users, use an authentication\n   281  # backend that allows them.\n   282  @override_settings(AUTHENTICATION_BACKENDS=['django.contrib.auth.backends.AllowAllUsersModelBackend'])\n   283  class AuthenticationFormTest(TestDataMixin, TestCase):\n   284  \n   285      def test_invalid_username(self):\n   286          # The user submits an invalid username.\n   287  \n   288          data = {\n   289              'username': 'jsmith_does_not_exist',\n   290              'password': 'test123',\n   291          }\n   292          form = AuthenticationForm(None, data)\n   293          self.assertFalse(form.is_valid())\n   294          self.assertEqual(\n   295              form.non_field_errors(), [\n   296                  form.error_messages['invalid_login'] % {\n   297                      'username': User._meta.get_field('username').verbose_name\n   298                  }\n   299              ]\n   300          )\n   301  \n   302      def test_inactive_user(self):\n   303          # The user is inactive.\n   304          data = {\n   305              'username': 'inactive',\n   306              'password': 'password',\n   307          }\n   308          form = AuthenticationForm(None, data)\n   309          self.assertFalse(form.is_valid())\n   310          self.assertEqual(form.non_field_errors(), [str(form.error_messages['inactive'])])\n   311  \n   312      # Use an authentication backend that rejects inactive users.\n   313      @override_settings(AUTHENTICATION_BACKENDS=['django.contrib.auth.backends.ModelBackend'])\n   314      def test_inactive_user_incorrect_password(self):\n   315          \"\"\"An invalid login doesn't leak the inactive status of a user.\"\"\"\n   316          data = {\n   317              'username': 'inactive',\n   318              'password': 'incorrect',\n   319          }\n   320          form = AuthenticationForm(None, data)\n   321          self.assertFalse(form.is_valid())\n   322          self.assertEqual(\n   323              form.non_field_errors(), [\n   324                  form.error_messages['invalid_login'] % {\n   325                      'username': User._meta.get_field('username').verbose_name\n   326                  }\n   327              ]\n   328          )\n   329  \n   330      def test_login_failed(self):\n   331          signal_calls = []\n   332  \n   333          def signal_handler(**kwargs):\n   334              signal_calls.append(kwargs)\n   335  \n   336          user_login_failed.connect(signal_handler)\n   337          fake_request = object()\n   338          try:\n   339              form = AuthenticationForm(fake_request, {\n   340                  'username': 'testclient',\n   341                  'password': 'incorrect',\n   342              })\n   343              self.assertFalse(form.is_valid())\n   344              self.assertIs(signal_calls[0]['request'], fake_request)\n   345          finally:\n   346              user_login_failed.disconnect(signal_handler)\n   347  \n   348      def test_inactive_user_i18n(self):\n   349          with self.settings(USE_I18N=True), translation.override('pt-br', deactivate=True):\n   350              # The user is inactive.\n   351              data = {\n   352                  'username': 'inactive',\n   353                  'password': 'password',\n   354              }\n   355              form = AuthenticationForm(None, data)\n   356              self.assertFalse(form.is_valid())\n   357              self.assertEqual(form.non_field_errors(), [str(form.error_messages['inactive'])])\n   358  \n   359      # Use an authentication backend that allows inactive users.\n   360      @override_settings(AUTHENTICATION_BACKENDS=['django.contrib.auth.backends.AllowAllUsersModelBackend'])\n   361      def test_custom_login_allowed_policy(self):\n   362          # The user is inactive, but our custom form policy allows them to log in.\n   363          data = {\n   364              'username': 'inactive',\n   365              'password': 'password',\n   366          }\n   367  \n   368          class AuthenticationFormWithInactiveUsersOkay(AuthenticationForm):\n   369              def confirm_login_allowed(self, user):\n   370                  pass\n   371  \n   372          form = AuthenticationFormWithInactiveUsersOkay(None, data)\n   373          self.assertTrue(form.is_valid())\n   374  \n   375          # If we want to disallow some logins according to custom logic,\n   376          # we should raise a django.forms.ValidationError in the form.\n   377          class PickyAuthenticationForm(AuthenticationForm):\n   378              def confirm_login_allowed(self, user):\n   379                  if user.username == \"inactive\":\n   380                      raise forms.ValidationError(\"This user is disallowed.\")\n   381                  raise forms.ValidationError(\"Sorry, nobody's allowed in.\")\n   382  \n   383          form = PickyAuthenticationForm(None, data)\n   384          self.assertFalse(form.is_valid())\n   385          self.assertEqual(form.non_field_errors(), ['This user is disallowed.'])\n   386  \n   387          data = {\n   388              'username': 'testclient',\n   389              'password': 'password',\n   390          }\n   391          form = PickyAuthenticationForm(None, data)\n   392          self.assertFalse(form.is_valid())\n   393          self.assertEqual(form.non_field_errors(), [\"Sorry, nobody's allowed in.\"])\n   394  \n   395      def test_success(self):\n   396          # The success case\n   397          data = {\n   398              'username': 'testclient',\n   399              'password': 'password',\n   400          }\n   401          form = AuthenticationForm(None, data)\n   402          self.assertTrue(form.is_valid())\n   403          self.assertEqual(form.non_field_errors(), [])\n   404  \n   405      def test_unicode_username(self):\n   406          User.objects.create_user(username='\u03a3\u03b1\u03c1\u03b1', password='pwd')\n   407          data = {\n   408              'username': '\u03a3\u03b1\u03c1\u03b1',\n   409              'password': 'pwd',\n   410          }\n   411          form = AuthenticationForm(None, data)\n   412          self.assertTrue(form.is_valid())\n   413          self.assertEqual(form.non_field_errors(), [])\n   414  \n   415      @override_settings(AUTH_USER_MODEL='auth_tests.CustomEmailField')\n   416      def test_username_field_max_length_matches_user_model(self):\n   417          self.assertEqual(CustomEmailField._meta.get_field('username').max_length, 255)\n   418          data = {\n   419              'username': 'u' * 255,\n   420              'password': 'pwd',\n   421              'email': 'test@example.com',\n   422          }\n   423          CustomEmailField.objects.create_user(**data)\n   424          form = AuthenticationForm(None, data)\n   425          self.assertEqual(form.fields['username'].max_length, 255)\n   426          self.assertEqual(form.errors, {})\n   427  \n   428      @override_settings(AUTH_USER_MODEL='auth_tests.IntegerUsernameUser')\n   429      def test_username_field_max_length_defaults_to_254(self):",
+      "extra": {
+        "raw_output": "tests/auth_tests/test_forms.py (lines 280-429 of 1050)\n   280  # To verify that the login form rejects inactive users, use an authentication\n   281  # backend that allows them.\n   282  @override_settings(AUTHENTICATION_BACKENDS=['django.contrib.auth.backends.AllowAllUsersModelBackend'])\n   283  class AuthenticationFormTest(TestDataMixin, TestCase):\n   284  \n   285      def test_invalid_username(self):\n   286          # The user submits an invalid username.\n   287  \n   288          data = {\n   289              'username': 'jsmith_does_not_exist',\n   290              'password': 'test123',\n   291          }\n   292          form = AuthenticationForm(None, data)\n   293          self.assertFalse(form.is_valid())\n   294          self.assertEqual(\n   295              form.non_field_errors(), [\n   296                  form.error_messages['invalid_login'] % {\n   297                      'username': User._meta.get_field('username').verbose_name\n   298                  }\n   299              ]\n   300          )\n   301  \n   302      def test_inactive_user(self):\n   303          # The user is inactive.\n   304          data = {\n   305              'username': 'inactive',\n   306              'password': 'password',\n   307          }\n   308          form = AuthenticationForm(None, data)\n   309          self.assertFalse(form.is_valid())\n   310          self.assertEqual(form.non_field_errors(), [str(form.error_messages['inactive'])])\n   311  \n   312      # Use an authentication backend that rejects inactive users.\n   313      @override_settings(AUTHENTICATION_BACKENDS=['django.contrib.auth.backends.ModelBackend'])\n   314      def test_inactive_user_incorrect_password(self):\n   315          \"\"\"An invalid login doesn't leak the inactive status of a user.\"\"\"\n   316          data = {\n   317              'username': 'inactive',\n   318              'password': 'incorrect',\n   319          }\n   320          form = AuthenticationForm(None, data)\n   321          self.assertFalse(form.is_valid())\n   322          self.assertEqual(\n   323              form.non_field_errors(), [\n   324                  form.error_messages['invalid_login'] % {\n   325                      'username': User._meta.get_field('username').verbose_name\n   326                  }\n   327              ]\n   328          )\n   329  \n   330      def test_login_failed(self):\n   331          signal_calls = []\n   332  \n   333          def signal_handler(**kwargs):\n   334              signal_calls.append(kwargs)\n   335  \n   336          user_login_failed.connect(signal_handler)\n   337          fake_request = object()\n   338          try:\n   339              form = AuthenticationForm(fake_request, {\n   340                  'username': 'testclient',\n   341                  'password': 'incorrect',\n   342              })\n   343              self.assertFalse(form.is_valid())\n   344              self.assertIs(signal_calls[0]['request'], fake_request)\n   345          finally:\n   346              user_login_failed.disconnect(signal_handler)\n   347  \n   348      def test_inactive_user_i18n(self):\n   349          with self.settings(USE_I18N=True), translation.override('pt-br', deactivate=True):\n   350              # The user is inactive.\n   351              data = {\n   352                  'username': 'inactive',\n   353                  'password': 'password',\n   354              }\n   355              form = AuthenticationForm(None, data)\n   356              self.assertFalse(form.is_valid())\n   357              self.assertEqual(form.non_field_errors(), [str(form.error_messages['inactive'])])\n   358  \n   359      # Use an authentication backend that allows inactive users.\n   360      @override_settings(AUTHENTICATION_BACKENDS=['django.contrib.auth.backends.AllowAllUsersModelBackend'])\n   361      def test_custom_login_allowed_policy(self):\n   362          # The user is inactive, but our custom form policy allows them to log in.\n   363          data = {\n   364              'username': 'inactive',\n   365              'password': 'password',\n   366          }\n   367  \n   368          class AuthenticationFormWithInactiveUsersOkay(AuthenticationForm):\n   369              def confirm_login_allowed(self, user):\n   370                  pass\n   371  \n   372          form = AuthenticationFormWithInactiveUsersOkay(None, data)\n   373          self.assertTrue(form.is_valid())\n   374  \n   375          # If we want to disallow some logins according to custom logic,\n   376          # we should raise a django.forms.ValidationError in the form.\n   377          class PickyAuthenticationForm(AuthenticationForm):\n   378              def confirm_login_allowed(self, user):\n   379                  if user.username == \"inactive\":\n   380                      raise forms.ValidationError(\"This user is disallowed.\")\n   381                  raise forms.ValidationError(\"Sorry, nobody's allowed in.\")\n   382  \n   383          form = PickyAuthenticationForm(None, data)\n   384          self.assertFalse(form.is_valid())\n   385          self.assertEqual(form.non_field_errors(), ['This user is disallowed.'])\n   386  \n   387          data = {\n   388              'username': 'testclient',\n   389              'password': 'password',\n   390          }\n   391          form = PickyAuthenticationForm(None, data)\n   392          self.assertFalse(form.is_valid())\n   393          self.assertEqual(form.non_field_errors(), [\"Sorry, nobody's allowed in.\"])\n   394  \n   395      def test_success(self):\n   396          # The success case\n   397          data = {\n   398              'username': 'testclient',\n   399              'password': 'password',\n   400          }\n   401          form = AuthenticationForm(None, data)\n   402          self.assertTrue(form.is_valid())\n   403          self.assertEqual(form.non_field_errors(), [])\n   404  \n   405      def test_unicode_username(self):\n   406          User.objects.create_user(username='\u03a3\u03b1\u03c1\u03b1', password='pwd')\n   407          data = {\n   408              'username': '\u03a3\u03b1\u03c1\u03b1',\n   409              'password': 'pwd',\n   410          }\n   411          form = AuthenticationForm(None, data)\n   412          self.assertTrue(form.is_valid())\n   413          self.assertEqual(form.non_field_errors(), [])\n   414  \n   415      @override_settings(AUTH_USER_MODEL='auth_tests.CustomEmailField')\n   416      def test_username_field_max_length_matches_user_model(self):\n   417          self.assertEqual(CustomEmailField._meta.get_field('username').max_length, 255)\n   418          data = {\n   419              'username': 'u' * 255,\n   420              'password': 'pwd',\n   421              'email': 'test@example.com',\n   422          }\n   423          CustomEmailField.objects.create_user(**data)\n   424          form = AuthenticationForm(None, data)\n   425          self.assertEqual(form.fields['username'].max_length, 255)\n   426          self.assertEqual(form.errors, {})\n   427  \n   428      @override_settings(AUTH_USER_MODEL='auth_tests.IntegerUsernameUser')\n   429      def test_username_field_max_length_defaults_to_254(self):",
+        "returncode": 0,
+        "timestamp": 1793530930.75075,
+        "exception_info": ""
+      },
+      "tool_call_id": "call_bfxQEYnQstU8x8l1mw32yVZw",
+      "role": "tool"
+    },
+    {
+      "content": null,
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\"path\":\"tests/auth_tests/test_forms.py\",\"start\":420,\"end\":720}",
+            "name": "view"
+          },
+          "id": "call_Ayaqz6VgHzL4LAy0YyfpiYMc",
+          "type": "function"
+        }
+      ],
+      "function_call": null,
+      "provider_specific_fields": {
+        "refusal": null
+      },
+      "annotations": [],
+      "extra": {
+        "actions": [
+          {
+            "tool": "view",
+            "args": {
+              "path": "tests/auth_tests/test_forms.py",
+              "start": 420,
+              "end": 720
+            },
+            "tool_call_id": "call_Ayaqz6VgHzL4LAy0YyfpiYMc",
+            "command": "view {\"path\": \"tests/auth_tests/test_forms.py\", \"start\": 420, \"end\": 720}"
+          }
+        ],
+        "response": {
+          "id": "chatcmpl-EfNcBqR2pnlHQNWRCetUjaJK3xC6Z",
+          "created": 1793530931,
+          "model": "gpt-5-mini-2025-08-07",
+          "object": "chat.completion",
+          "system_fingerprint": null,
+          "choices": [
+            {
+              "finish_reason": "tool_calls",
+              "index": 0,
+              "message": {
+                "content": null,
+                "role": "assistant",
+                "tool_calls": [
+                  {
+                    "function": {
+                      "arguments": "{\"path\":\"tests/auth_tests/test_forms.py\",\"start\":420,\"end\":720}",
+                      "name": "view"
+                    },
+                    "id": "call_Ayaqz6VgHzL4LAy0YyfpiYMc",
+                    "type": "function"
+                  }
+                ],
+                "function_call": null,
+                "provider_specific_fields": {
+                  "refusal": null
+                },
+                "annotations": []
+              },
+              "provider_specific_fields": {}
+            }
+          ],
+          "usage": {
+            "completion_tokens": 29,
+            "prompt_tokens": 15779,
+            "total_tokens": 15808,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 0,
+              "rejected_prediction_tokens": 0
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cached_tokens": 13952
+            }
+          },
+          "moderation": null,
+          "service_tier": "flex"
+        },
+        "cost": 0.00043177499999999996,
+        "timestamp": 1793530931.8331661
+      }
+    },
+    {
+      "content": "tests/auth_tests/test_forms.py (lines 420-569 of 1050)\n   420              'password': 'pwd',\n   421              'email': 'test@example.com',\n   422          }\n   423          CustomEmailField.objects.create_user(**data)\n   424          form = AuthenticationForm(None, data)\n   425          self.assertEqual(form.fields['username'].max_length, 255)\n   426          self.assertEqual(form.errors, {})\n   427  \n   428      @override_settings(AUTH_USER_MODEL='auth_tests.IntegerUsernameUser')\n   429      def test_username_field_max_length_defaults_to_254(self):\n   430          self.assertIsNone(IntegerUsernameUser._meta.get_field('username').max_length)\n   431          data = {\n   432              'username': '0123456',\n   433              'password': 'password',\n   434          }\n   435          IntegerUsernameUser.objects.create_user(**data)\n   436          form = AuthenticationForm(None, data)\n   437          self.assertEqual(form.fields['username'].max_length, 254)\n   438          self.assertEqual(form.errors, {})\n   439  \n   440      def test_username_field_label(self):\n   441  \n   442          class CustomAuthenticationForm(AuthenticationForm):\n   443              username = CharField(label=\"Name\", max_length=75)\n   444  \n   445          form = CustomAuthenticationForm()\n   446          self.assertEqual(form['username'].label, \"Name\")\n   447  \n   448      def test_username_field_label_not_set(self):\n   449  \n   450          class CustomAuthenticationForm(AuthenticationForm):\n   451              username = CharField()\n   452  \n   453          form = CustomAuthenticationForm()\n   454          username_field = User._meta.get_field(User.USERNAME_FIELD)\n   455          self.assertEqual(form.fields['username'].label, capfirst(username_field.verbose_name))\n   456  \n   457      def test_username_field_autocapitalize_none(self):\n   458          form = AuthenticationForm()\n   459          self.assertEqual(form.fields['username'].widget.attrs.get('autocapitalize'), 'none')\n   460  \n   461      def test_username_field_label_empty_string(self):\n   462  \n   463          class CustomAuthenticationForm(AuthenticationForm):\n   464              username = CharField(label='')\n   465  \n   466          form = CustomAuthenticationForm()\n   467          self.assertEqual(form.fields['username'].label, \"\")\n   468  \n   469      def test_password_whitespace_not_stripped(self):\n   470          data = {\n   471              'username': 'testuser',\n   472              'password': ' pass ',\n   473          }\n   474          form = AuthenticationForm(None, data)\n   475          form.is_valid()  # Not necessary to have valid credentails for the test.\n   476          self.assertEqual(form.cleaned_data['password'], data['password'])\n   477  \n   478      @override_settings(AUTH_USER_MODEL='auth_tests.IntegerUsernameUser')\n   479      def test_integer_username(self):\n   480          class CustomAuthenticationForm(AuthenticationForm):\n   481              username = IntegerField()\n   482  \n   483          user = IntegerUsernameUser.objects.create_user(username=0, password='pwd')\n   484          data = {\n   485              'username': 0,\n   486              'password': 'pwd',\n   487          }\n   488          form = CustomAuthenticationForm(None, data)\n   489          self.assertTrue(form.is_valid())\n   490          self.assertEqual(form.cleaned_data['username'], data['username'])\n   491          self.assertEqual(form.cleaned_data['password'], data['password'])\n   492          self.assertEqual(form.errors, {})\n   493          self.assertEqual(form.user_cache, user)\n   494  \n   495      def test_get_invalid_login_error(self):\n   496          error = AuthenticationForm().get_invalid_login_error()\n   497          self.assertIsInstance(error, forms.ValidationError)\n   498          self.assertEqual(\n   499              error.message,\n   500              'Please enter a correct %(username)s and password. Note that both '\n   501              'fields may be case-sensitive.',\n   502          )\n   503          self.assertEqual(error.code, 'invalid_login')\n   504          self.assertEqual(error.params, {'username': 'username'})\n   505  \n   506      def test_html_autocomplete_attributes(self):\n   507          form = AuthenticationForm()\n   508          tests = (\n   509              ('username', 'username'),\n   510              ('password', 'current-password'),\n   511          )\n   512          for field_name, autocomplete in tests:\n   513              with self.subTest(field_name=field_name, autocomplete=autocomplete):\n   514                  self.assertEqual(form.fields[field_name].widget.attrs['autocomplete'], autocomplete)\n   515  \n   516  \n   517  class SetPasswordFormTest(TestDataMixin, TestCase):\n   518  \n   519      def test_password_verification(self):\n   520          # The two new passwords do not match.\n   521          user = User.objects.get(username='testclient')\n   522          data = {\n   523              'new_password1': 'abc123',\n   524              'new_password2': 'abc',\n   525          }\n   526          form = SetPasswordForm(user, data)\n   527          self.assertFalse(form.is_valid())\n   528          self.assertEqual(\n   529              form[\"new_password2\"].errors,\n   530              [str(form.error_messages['password_mismatch'])]\n   531          )\n   532  \n   533      @mock.patch('django.contrib.auth.password_validation.password_changed')\n   534      def test_success(self, password_changed):\n   535          user = User.objects.get(username='testclient')\n   536          data = {\n   537              'new_password1': 'abc123',\n   538              'new_password2': 'abc123',\n   539          }\n   540          form = SetPasswordForm(user, data)\n   541          self.assertTrue(form.is_valid())\n   542          form.save(commit=False)\n   543          self.assertEqual(password_changed.call_count, 0)\n   544          form.save()\n   545          self.assertEqual(password_changed.call_count, 1)\n   546  \n   547      @override_settings(AUTH_PASSWORD_VALIDATORS=[\n   548          {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},\n   549          {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', 'OPTIONS': {\n   550              'min_length': 12,\n   551          }},\n   552      ])\n   553      def test_validates_password(self):\n   554          user = User.objects.get(username='testclient')\n   555          data = {\n   556              'new_password1': 'testclient',\n   557              'new_password2': 'testclient',\n   558          }\n   559          form = SetPasswordForm(user, data)\n   560          self.assertFalse(form.is_valid())\n   561          self.assertEqual(len(form[\"new_password2\"].errors), 2)\n   562          self.assertIn('The password is too similar to the username.', form[\"new_password2\"].errors)\n   563          self.assertIn(\n   564              'This password is too short. It must contain at least 12 characters.',\n   565              form[\"new_password2\"].errors\n   566          )\n   567  \n   568      def test_password_whitespace_not_stripped(self):\n   569          user = User.objects.get(username='testclient')",
+      "extra": {
+        "raw_output": "tests/auth_tests/test_forms.py (lines 420-569 of 1050)\n   420              'password': 'pwd',\n   421              'email': 'test@example.com',\n   422          }\n   423          CustomEmailField.objects.create_user(**data)\n   424          form = AuthenticationForm(None, data)\n   425          self.assertEqual(form.fields['username'].max_length, 255)\n   426          self.assertEqual(form.errors, {})\n   427  \n   428      @override_settings(AUTH_USER_MODEL='auth_tests.IntegerUsernameUser')\n   429      def test_username_field_max_length_defaults_to_254(self):\n   430          self.assertIsNone(IntegerUsernameUser._meta.get_field('username').max_length)\n   431          data = {\n   432              'username': '0123456',\n   433              'password': 'password',\n   434          }\n   435          IntegerUsernameUser.objects.create_user(**data)\n   436          form = AuthenticationForm(None, data)\n   437          self.assertEqual(form.fields['username'].max_length, 254)\n   438          self.assertEqual(form.errors, {})\n   439  \n   440      def test_username_field_label(self):\n   441  \n   442          class CustomAuthenticationForm(AuthenticationForm):\n   443              username = CharField(label=\"Name\", max_length=75)\n   444  \n   445          form = CustomAuthenticationForm()\n   446          self.assertEqual(form['username'].label, \"Name\")\n   447  \n   448      def test_username_field_label_not_set(self):\n   449  \n   450          class CustomAuthenticationForm(AuthenticationForm):\n   451              username = CharField()\n   452  \n   453          form = CustomAuthenticationForm()\n   454          username_field = User._meta.get_field(User.USERNAME_FIELD)\n   455          self.assertEqual(form.fields['username'].label, capfirst(username_field.verbose_name))\n   456  \n   457      def test_username_field_autocapitalize_none(self):\n   458          form = AuthenticationForm()\n   459          self.assertEqual(form.fields['username'].widget.attrs.get('autocapitalize'), 'none')\n   460  \n   461      def test_username_field_label_empty_string(self):\n   462  \n   463          class CustomAuthenticationForm(AuthenticationForm):\n   464              username = CharField(label='')\n   465  \n   466          form = CustomAuthenticationForm()\n   467          self.assertEqual(form.fields['username'].label, \"\")\n   468  \n   469      def test_password_whitespace_not_stripped(self):\n   470          data = {\n   471              'username': 'testuser',\n   472              'password': ' pass ',\n   473          }\n   474          form = AuthenticationForm(None, data)\n   475          form.is_valid()  # Not necessary to have valid credentails for the test.\n   476          self.assertEqual(form.cleaned_data['password'], data['password'])\n   477  \n   478      @override_settings(AUTH_USER_MODEL='auth_tests.IntegerUsernameUser')\n   479      def test_integer_username(self):\n   480          class CustomAuthenticationForm(AuthenticationForm):\n   481              username = IntegerField()\n   482  \n   483          user = IntegerUsernameUser.objects.create_user(username=0, password='pwd')\n   484          data = {\n   485              'username': 0,\n   486              'password': 'pwd',\n   487          }\n   488          form = CustomAuthenticationForm(None, data)\n   489          self.assertTrue(form.is_valid())\n   490          self.assertEqual(form.cleaned_data['username'], data['username'])\n   491          self.assertEqual(form.cleaned_data['password'], data['password'])\n   492          self.assertEqual(form.errors, {})\n   493          self.assertEqual(form.user_cache, user)\n   494  \n   495      def test_get_invalid_login_error(self):\n   496          error = AuthenticationForm().get_invalid_login_error()\n   497          self.assertIsInstance(error, forms.ValidationError)\n   498          self.assertEqual(\n   499              error.message,\n   500              'Please enter a correct %(username)s and password. Note that both '\n   501              'fields may be case-sensitive.',\n   502          )\n   503          self.assertEqual(error.code, 'invalid_login')\n   504          self.assertEqual(error.params, {'username': 'username'})\n   505  \n   506      def test_html_autocomplete_attributes(self):\n   507          form = AuthenticationForm()\n   508          tests = (\n   509              ('username', 'username'),\n   510              ('password', 'current-password'),\n   511          )\n   512          for field_name, autocomplete in tests:\n   513              with self.subTest(field_name=field_name, autocomplete=autocomplete):\n   514                  self.assertEqual(form.fields[field_name].widget.attrs['autocomplete'], autocomplete)\n   515  \n   516  \n   517  class SetPasswordFormTest(TestDataMixin, TestCase):\n   518  \n   519      def test_password_verification(self):\n   520          # The two new passwords do not match.\n   521          user = User.objects.get(username='testclient')\n   522          data = {\n   523              'new_password1': 'abc123',\n   524              'new_password2': 'abc',\n   525          }\n   526          form = SetPasswordForm(user, data)\n   527          self.assertFalse(form.is_valid())\n   528          self.assertEqual(\n   529              form[\"new_password2\"].errors,\n   530              [str(form.error_messages['password_mismatch'])]\n   531          )\n   532  \n   533      @mock.patch('django.contrib.auth.password_validation.password_changed')\n   534      def test_success(self, password_changed):\n   535          user = User.objects.get(username='testclient')\n   536          data = {\n   537              'new_password1': 'abc123',\n   538              'new_password2': 'abc123',\n   539          }\n   540          form = SetPasswordForm(user, data)\n   541          self.assertTrue(form.is_valid())\n   542          form.save(commit=False)\n   543          self.assertEqual(password_changed.call_count, 0)\n   544          form.save()\n   545          self.assertEqual(password_changed.call_count, 1)\n   546  \n   547      @override_settings(AUTH_PASSWORD_VALIDATORS=[\n   548          {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},\n   549          {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', 'OPTIONS': {\n   550              'min_length': 12,\n   551          }},\n   552      ])\n   553      def test_validates_password(self):\n   554          user = User.objects.get(username='testclient')\n   555          data = {\n   556              'new_password1': 'testclient',\n   557              'new_password2': 'testclient',\n   558          }\n   559          form = SetPasswordForm(user, data)\n   560          self.assertFalse(form.is_valid())\n   561          self.assertEqual(len(form[\"new_password2\"].errors), 2)\n   562          self.assertIn('The password is too similar to the username.', form[\"new_password2\"].errors)\n   563          self.assertIn(\n   564              'This password is too short. It must contain at least 12 characters.',\n   565              form[\"new_password2\"].errors\n   566          )\n   567  \n   568      def test_password_whitespace_not_stripped(self):\n   569          user = User.objects.get(username='testclient')",
+        "returncode": 0,
+        "timestamp": 1793530933.073397,
+        "exception_info": ""
+      },
+      "tool_call_id": "call_Ayaqz6VgHzL4LAy0YyfpiYMc",
+      "role": "tool"
+    },
+    {
+      "content": null,
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\"command\":\"cat > /tmp/repro.py << 'PY'\\n#!/usr/bin/env python3\\nimport sys\\nfrom django.conf import settings\\n\\nsettings.configure(\\n    INSTALLED_APPS=['django.contrib.auth', 'django.contrib.contenttypes'],\\n    DATABASES={'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}},\\n    SECRET_KEY='repro-key',\\n)\\n\\nimport django\\ndjango.setup()\\n\\nfrom django.contrib.auth.forms import AuthenticationForm\\n\\nform = AuthenticationForm()\\n# Render the username field widget as HTML\\ntry:\\n    widget_html = form['username'].as_widget()\\nexcept TypeError:\\n    # Some Django versions require a renderer argument for as_widget\\n    widget_html = form['username'].as_widget(renderer=None)\\n\\nprint(widget_html)\\n\\nif 'maxlength' not in widget_html:\\n    print('FAIL: maxlength attribute not present on username field')\\n    sys.exit(1)\\nelse:\\n    print('OK: maxlength attribute present')\\n    sys.exit(0)\\nPY\\n\\nchmod +x /tmp/repro.py\\n\\npython3 /tmp/repro.py; echo exit:$?\"}",
+            "name": "bash"
+          },
+          "id": "call_AGDFfIQ1xAuFrjJpvP2aMAhX",
+          "type": "function"
+        }
+      ],
+      "function_call": null,
+      "provider_specific_fields": {
+        "refusal": null
+      },
+      "annotations": [],
+      "extra": {
+        "actions": [
+          {
+            "tool": "bash",
+            "args": {
+              "command": "cat > /tmp/repro.py << 'PY'\n#!/usr/bin/env python3\nimport sys\nfrom django.conf import settings\n\nsettings.configure(\n    INSTALLED_APPS=['django.contrib.auth', 'django.contrib.contenttypes'],\n    DATABASES={'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}},\n    SECRET_KEY='repro-key',\n)\n\nimport django\ndjango.setup()\n\nfrom django.contrib.auth.forms import AuthenticationForm\n\nform = AuthenticationForm()\n# Render the username field widget as HTML\ntry:\n    widget_html = form['username'].as_widget()\nexcept TypeError:\n    # Some Django versions require a renderer argument for as_widget\n    widget_html = form['username'].as_widget(renderer=None)\n\nprint(widget_html)\n\nif 'maxlength' not in widget_html:\n    print('FAIL: maxlength attribute not present on username field')\n    sys.exit(1)\nelse:\n    print('OK: maxlength attribute present')\n    sys.exit(0)\nPY\n\nchmod +x /tmp/repro.py\n\npython3 /tmp/repro.py; echo exit:$?"
+            },
+            "tool_call_id": "call_AGDFfIQ1xAuFrjJpvP2aMAhX",
+            "command": "bash {\"command\": \"cat > /tmp/repro.py << 'PY'\\n#!/usr/bin/env python3\\nimport sys\\nfrom django.conf import settings\\n\\nsettings.configure(\\n    INSTALLED_APPS=['django.contrib.auth', 'django.contrib.contenttypes'],\\n    DATABASES={'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}},\\n    SECRET_KEY='repro-key',\\n)\\n\\nimport django\\ndjango.setup()\\n\\nfrom django.contrib.auth.forms import AuthenticationForm\\n\\nform = AuthenticationForm()\\n# Render the username field widget as HTML\\ntry:\\n    widget_html = form['username'].as_widget()\\nexcept TypeError:\\n    # Some Django versions require a renderer argument for as_widget\\n    widget_html = form['username'].as_widget(renderer=None)\\n\\nprint(widget_html)\\n\\nif 'maxlength' not in widget_html:\\n    print('FAIL: maxlength attribute not present on username field')\\n    sys.exit(1)\\nelse:\\n    print('OK: maxlength attribute present')\\n    sys.exit(0)\\nPY\\n\\nchmod +x /tmp/repro.py\\n\\npython3 /tmp/repro.py; echo exit:$?\"}"
+          }
+        ],
+        "response": {
+          "id": "chatcmpl-EfNcDPR0ad973aDwfJfdxplRTCLNe",
+          "created": 1793530933,
+          "model": "gpt-5-mini-2025-08-07",
+          "object": "chat.completion",
+          "system_fingerprint": null,
+          "choices": [
+            {
+              "finish_reason": "tool_calls",
+              "index": 0,
+              "message": {
+                "content": null,
+                "role": "assistant",
+                "tool_calls": [
+                  {
+                    "function": {
+                      "arguments": "{\"command\":\"cat > /tmp/repro.py << 'PY'\\n#!/usr/bin/env python3\\nimport sys\\nfrom django.conf import settings\\n\\nsettings.configure(\\n    INSTALLED_APPS=['django.contrib.auth', 'django.contrib.contenttypes'],\\n    DATABASES={'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}},\\n    SECRET_KEY='repro-key',\\n)\\n\\nimport django\\ndjango.setup()\\n\\nfrom django.contrib.auth.forms import AuthenticationForm\\n\\nform = AuthenticationForm()\\n# Render the username field widget as HTML\\ntry:\\n    widget_html = form['username'].as_widget()\\nexcept TypeError:\\n    # Some Django versions require a renderer argument for as_widget\\n    widget_html = form['username'].as_widget(renderer=None)\\n\\nprint(widget_html)\\n\\nif 'maxlength' not in widget_html:\\n    print('FAIL: maxlength attribute not present on username field')\\n    sys.exit(1)\\nelse:\\n    print('OK: maxlength attribute present')\\n    sys.exit(0)\\nPY\\n\\nchmod +x /tmp/repro.py\\n\\npython3 /tmp/repro.py; echo exit:$?\"}",
+                      "name": "bash"
+                    },
+                    "id": "call_AGDFfIQ1xAuFrjJpvP2aMAhX",
+                    "type": "function"
+                  }
+                ],
+                "function_call": null,
+                "provider_specific_fields": {
+                  "refusal": null
+                },
+                "annotations": []
+              },
+              "provider_specific_fields": {}
+            }
+          ],
+          "usage": {
+            "completion_tokens": 1428,
+            "prompt_tokens": 17485,
+            "total_tokens": 18913,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 1152,
+              "rejected_prediction_tokens": 0
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cached_tokens": 15616
+            }
+          },
+          "moderation": null,
+          "service_tier": "flex"
+        },
+        "cost": 0.0018568249999999999,
+        "timestamp": 1793530941.8023438
+      }
+    },
+    {
+      "content": "exit code 0\n<input type=\"text\" name=\"username\" autofocus autocapitalize=\"none\" autocomplete=\"username\" required id=\"id_username\">\nFAIL: maxlength attribute not present on username field\nexit:1\n",
+      "extra": {
+        "raw_output": "exit code 0\n<input type=\"text\" name=\"username\" autofocus autocapitalize=\"none\" autocomplete=\"username\" required id=\"id_username\">\nFAIL: maxlength attribute not present on username field\nexit:1\n",
+        "returncode": 0,
+        "timestamp": 1793530944.493854,
+        "exception_info": ""
+      },
+      "tool_call_id": "call_AGDFfIQ1xAuFrjJpvP2aMAhX",
+      "role": "tool"
+    },
+    {
+      "content": null,
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\"path\":\"/tmp/repro.py\"}",
+            "name": "register_repro"
+          },
+          "id": "call_YIpEaBa17kJjI7EOh5G3eILm",
+          "type": "function"
+        }
+      ],
+      "function_call": null,
+      "provider_specific_fields": {
+        "refusal": null
+      },
+      "annotations": [],
+      "extra": {
+        "actions": [
+          {
+            "tool": "register_repro",
+            "args": {
+              "path": "/tmp/repro.py"
+            },
+            "tool_call_id": "call_YIpEaBa17kJjI7EOh5G3eILm",
+            "command": "register_repro {\"path\": \"/tmp/repro.py\"}"
+          }
+        ],
+        "response": {
+          "id": "chatcmpl-EfNcP7avcBHQTAewTAoEQsAhMJOiy",
+          "created": 1793530945,
+          "model": "gpt-5-mini-2025-08-07",
+          "object": "chat.completion",
+          "system_fingerprint": null,
+          "choices": [
+            {
+              "finish_reason": "tool_calls",
+              "index": 0,
+              "message": {
+                "content": null,
+                "role": "assistant",
+                "tool_calls": [
+                  {
+                    "function": {
+                      "arguments": "{\"path\":\"/tmp/repro.py\"}",
+                      "name": "register_repro"
+                    },
+                    "id": "call_YIpEaBa17kJjI7EOh5G3eILm",
+                    "type": "function"
+                  }
+                ],
+                "function_call": null,
+                "provider_specific_fields": {
+                  "refusal": null
+                },
+                "annotations": []
+              },
+              "provider_specific_fields": {}
+            }
+          ],
+          "usage": {
+            "completion_tokens": 28,
+            "prompt_tokens": 17811,
+            "total_tokens": 17839,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 0,
+              "rejected_prediction_tokens": 0
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cached_tokens": 17280
+            }
+          },
+          "moderation": null,
+          "service_tier": "flex"
+        },
+        "cost": 0.00031037499999999994,
+        "timestamp": 1793530945.898134
+      }
+    },
+    {
+      "role": "exit",
+      "content": "Submitted",
+      "extra": {
+        "exit_status": "Submitted",
+        "submission": "#!/usr/bin/env python3\nimport sys\nfrom django.conf import settings\n\nsettings.configure(\n    INSTALLED_APPS=['django.contrib.auth', 'django.contrib.contenttypes'],\n    DATABASES={'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}},\n    SECRET_KEY='repro-key',\n)\n\nimport django\ndjango.setup()\n\nfrom django.contrib.auth.forms import AuthenticationForm\n\nform = AuthenticationForm()\n# Render the username field widget as HTML\ntry:\n    widget_html = form['username'].as_widget()\nexcept TypeError:\n    # Some Django versions require a renderer argument for as_widget\n    widget_html = form['username'].as_widget(renderer=None)\n\nprint(widget_html)\n\nif 'maxlength' not in widget_html:\n    print('FAIL: maxlength attribute not present on username field')\n    sys.exit(1)\nelse:\n    print('OK: maxlength attribute present')\n    sys.exit(0)\n",
+        "verified": true
+      }
+    }
+  ],
+  "trajectory_format": "mini-swe-agent-1.1"
+}

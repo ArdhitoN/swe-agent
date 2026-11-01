@@ -1,0 +1,20 @@
+[
+  {
+    "writer": 1,
+    "registered": true,
+    "api_calls": 13,
+    "cost": 0.009690349999999999
+  },
+  {
+    "writer": 2,
+    "registered": true,
+    "api_calls": 24,
+    "cost": 0.012480674999999998
+  },
+  {
+    "writer": 3,
+    "registered": true,
+    "api_calls": 19,
+    "cost": 0.008337125
+  }
+]

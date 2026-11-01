@@ -1,0 +1,21 @@
+diff --git a/sphinx/ext/napoleon/docstring.py b/sphinx/ext/napoleon/docstring.py
+index b3daa06f1..53c49a5a8 100644
+--- a/sphinx/ext/napoleon/docstring.py
++++ b/sphinx/ext/napoleon/docstring.py
+@@ -273,7 +273,15 @@ class GoogleDocstring:
+         while not self._is_section_break():
+             _name, _type, _desc = self._consume_field(parse_type, prefer_type)
+             if _name or _type or _desc:
+-                fields.append((_name, _type, _desc,))
++                # Support combined parameter names like "x1, x2 : type"
++                # by splitting the names into separate fields with the
++                # same type and description.
++                if parse_type and ',' in _name:
++                    for name in (_n.strip() for _n in _name.split(',')):
++                        if name:
++                            fields.append((name, _type, _desc,))
++                else:
++                    fields.append((_name, _type, _desc,))
+         return fields
+ 
+     def _consume_inline_attribute(self) -> Tuple[str, List[str]]:

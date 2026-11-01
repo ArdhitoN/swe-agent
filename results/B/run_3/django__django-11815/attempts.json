@@ -1,0 +1,22 @@
+[
+  {
+    "attempt": 1,
+    "exit_status": "Submitted",
+    "verified": true,
+    "api_calls": 19,
+    "cost": 0.012641875,
+    "patch_id": "d96d55de97bd",
+    "has_repro": true,
+    "events": 3
+  },
+  {
+    "attempt": 2,
+    "exit_status": "Submitted",
+    "verified": true,
+    "api_calls": 34,
+    "cost": 0.020394774999999997,
+    "patch_id": "9da016e5b70d",
+    "has_repro": true,
+    "events": 5
+  }
+]

@@ -1,0 +1,369 @@
+{
+  "info": {
+    "model_stats": {
+      "instance_cost": 0.0029121249999999993,
+      "api_calls": 3
+    },
+    "config": {
+      "agent": {
+        "system_template": "You are a careful software engineer fixing a real bug in an open-source Python project. You work through tools. Think briefly, then call tools. Be efficient: every call costs budget.",
+        "instance_template": "<issue>\n{{task}}\n</issue>\n\nYour only job: write a standalone script under /tmp (for example /tmp/repro.py) that reproduces this\nissue in /testbed. It must exit with a NON-ZERO code while the bug is present and exit 0 once the bug is\nfixed (use `assert` or `sys.exit(1)`). For Django, configure settings inside the script\n(`settings.configure(...)` then `django.setup()`). Do not change any repository files.\nReproduce the behaviour exactly as the issue describes it: the same input and the same entry point the user\nused (the same directive, field, API call or command), not an internal function you guessed.\nWhen the script fails on the current code because of the bug, call `register_repro` with its path.\nBudget: about {{step_limit}} tool-using replies.",
+        "step_limit": 30,
+        "cost_limit": 0.3,
+        "wall_time_limit_seconds": 0,
+        "max_consecutive_format_errors": 3,
+        "output_path": "/Users/pinhomemacbook4/job/smartm2m/swe-agent/results/C/run_2/django__django-12774/test_writer/writer_3.traj.json",
+        "localize_share": 0.25,
+        "mode": "repro"
+      },
+      "agent_type": "gated_agent.attempt.GatedAgent",
+      "model": {
+        "model_name": "openai/gpt-5-mini-2025-08-07",
+        "model_kwargs": {
+          "drop_params": true,
+          "parallel_tool_calls": true,
+          "service_tier": "flex"
+        },
+        "litellm_model_registry": null,
+        "set_cache_control": null,
+        "cost_tracking": "default",
+        "format_error_template": "Tool call error: {{error}}\nEvery reply must call at least one tool, with JSON arguments. Available tools: {{tools}}.",
+        "observation_template": "{{ output.output }}",
+        "multimodal_regex": ""
+      },
+      "model_type": "gated_agent.model.GatedModel",
+      "environment": {
+        "image": "docker.io/swebench/sweb.eval.x86_64.django_1776_django-12774:latest",
+        "cwd": "/testbed",
+        "env": {
+          "PAGER": "cat",
+          "MANPAGER": "cat",
+          "LESS": "-R",
+          "PIP_PROGRESS_BAR": "off",
+          "TQDM_DISABLE": "1",
+          "BASH_ENV": "/root/.bashrc"
+        },
+        "forward_env": [],
+        "timeout": 60,
+        "executable": "/Users/pinhomemacbook4/.docker/bin/docker",
+        "run_args": [
+          "--rm"
+        ],
+        "container_timeout": "2h",
+        "pull_timeout": 120,
+        "interpreter": [
+          "bash",
+          "-c"
+        ]
+      },
+      "environment_type": "minisweagent.environments.docker.DockerEnvironment"
+    },
+    "mini_version": "2.4.6",
+    "exit_status": "Submitted",
+    "submission": "import sys\nimport os\n\n# Ensure /tmp is on path to import repro_app\nsys.path.insert(0, '/tmp')\n\nfrom django.conf import settings\n\nsettings.configure(\n    INSTALLED_APPS=[\n        'django.contrib.contenttypes',\n        'repro_app',\n    ],\n    DATABASES={\n        'default': {\n            'ENGINE': 'django.db.backends.sqlite3',\n            'NAME': ':memory:',\n        }\n    },\n    DEFAULT_AUTO_FIELD='django.db.models.AutoField',\n)\n\nimport django\nfrom django.db import connection\n\ndjango.setup()\n\nfrom repro_app.models import Article\n\n# Create the table for Article\nwith connection.schema_editor() as schema_editor:\n    schema_editor.create_model(Article)\n\n# Insert a row\nArticle.objects.create(slug='a')\n\n# Call in_bulk on the field that is unique via UniqueConstraint (not unique=True)\ntry:\n    Article.objects.in_bulk(field_name='slug')\nexcept ValueError as e:\n    msg = str(e)\n    # Expected buggy behavior: in_bulk raises ValueError saying field isn't unique\n    if \"in_bulk()'s field_name must be a unique field\" in msg:\n        print('Reproduced bug: in_bulk raised ValueError:', msg, file=sys.stderr)\n        # Non-zero exit to indicate bug present\n        sys.exit(1)\n    else:\n        # Unexpected ValueError\n        raise\nelse:\n    # No exception: bug fixed\n    print('in_bulk succeeded; bug appears fixed')\n    sys.exit(0)\n",
+    "gated": {
+      "events": [
+        {
+          "step": 3,
+          "event": "repro_registered",
+          "path": "/tmp/repro.py"
+        }
+      ],
+      "repro_path": "/tmp/repro.py",
+      "repro_code": "import sys\nimport os\n\n# Ensure /tmp is on path to import repro_app\nsys.path.insert(0, '/tmp')\n\nfrom django.conf import settings\n\nsettings.configure(\n    INSTALLED_APPS=[\n        'django.contrib.contenttypes',\n        'repro_app',\n    ],\n    DATABASES={\n        'default': {\n            'ENGINE': 'django.db.backends.sqlite3',\n            'NAME': ':memory:',\n        }\n    },\n    DEFAULT_AUTO_FIELD='django.db.models.AutoField',\n)\n\nimport django\nfrom django.db import connection\n\ndjango.setup()\n\nfrom repro_app.models import Article\n\n# Create the table for Article\nwith connection.schema_editor() as schema_editor:\n    schema_editor.create_model(Article)\n\n# Insert a row\nArticle.objects.create(slug='a')\n\n# Call in_bulk on the field that is unique via UniqueConstraint (not unique=True)\ntry:\n    Article.objects.in_bulk(field_name='slug')\nexcept ValueError as e:\n    msg = str(e)\n    # Expected buggy behavior: in_bulk raises ValueError saying field isn't unique\n    if \"in_bulk()'s field_name must be a unique field\" in msg:\n        print('Reproduced bug: in_bulk raised ValueError:', msg, file=sys.stderr)\n        # Non-zero exit to indicate bug present\n        sys.exit(1)\n    else:\n        # Unexpected ValueError\n        raise\nelse:\n    # No exception: bug fixed\n    print('in_bulk succeeded; bug appears fixed')\n    sys.exit(0)\n",
+      "verified": false,
+      "last_verify": {}
+    }
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a careful software engineer fixing a real bug in an open-source Python project. You work through tools. Think briefly, then call tools. Be efficient: every call costs budget."
+    },
+    {
+      "role": "user",
+      "content": "<issue>\nAllow QuerySet.in_bulk() for fields with total UniqueConstraints.\nDescription\n\t\nIf a field is unique by UniqueConstraint instead of unique=True running in_bulk() on that field will fail.\nConsider:\nclass Article(models.Model):\n\tslug = models.CharField(max_length=255)\n\t\n\tclass Meta:\n\t\tconstraints = [\n\t\t\tmodels.UniqueConstraint(fields=[\"slug\"], name=\"%(app_label)s_%(class)s_slug_unq\")\n\t\t]\n>>> Article.objects.in_bulk(field_name=\"slug\")\nTraceback (most recent call last):\n File \"/usr/local/lib/python3.8/code.py\", line 90, in runcode\n\texec(code, self.locals)\n File \"<console>\", line 1, in <module>\n File \"/app/venv/lib/python3.8/site-packages/django/db/models/manager.py\", line 82, in manager_method\n\treturn getattr(self.get_queryset(), name)(*args, **kwargs)\n File \"/app/venv/lib/python3.8/site-packages/django/db/models/query.py\", line 680, in in_bulk\n\traise ValueError(\"in_bulk()'s field_name must be a unique field but %r isn't.\" % field_name)\nValueError: in_bulk()'s field_name must be a unique field but 'slug' isn't.\nIt should be pretty simple to fix this and I have a patch if accepted.\n\n</issue>\n\nYour only job: write a standalone script under /tmp (for example /tmp/repro.py) that reproduces this\nissue in /testbed. It must exit with a NON-ZERO code while the bug is present and exit 0 once the bug is\nfixed (use `assert` or `sys.exit(1)`). For Django, configure settings inside the script\n(`settings.configure(...)` then `django.setup()`). Do not change any repository files.\nReproduce the behaviour exactly as the issue describes it: the same input and the same entry point the user\nused (the same directive, field, API call or command), not an internal function you guessed.\nWhen the script fails on the current code because of the bug, call `register_repro` with its path.\nBudget: about 30 tool-using replies."
+    },
+    {
+      "content": "I'll create a small Django app under /tmp, write the repro script, run it to show the ValueError, and register the repro.",
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\"command\":\"mkdir -p /tmp/repro_app\\ncat > /tmp/repro_app/__init__.py << 'PY'\\n# repro_app package\\nPY\\n\\ncat > /tmp/repro_app/models.py << 'PY'\\nfrom django.db import models\\n\\nclass Article(models.Model):\\n    slug = models.CharField(max_length=255)\\n\\n    class Meta:\\n        app_label = 'repro_app'\\n        constraints = [\\n            models.UniqueConstraint(fields=['slug'], name='%(app_label)s_%(class)s_slug_unq'),\\n        ]\\nPY\\n\\ncat > /tmp/repro.py << 'PY'\\nimport sys\\nimport os\\n\\n# Ensure /tmp is on path to import repro_app\\nsys.path.insert(0, '/tmp')\\n\\nfrom django.conf import settings\\n\\nsettings.configure(\\n    INSTALLED_APPS=[\\n        'django.contrib.contenttypes',\\n        'repro_app',\\n    ],\\n    DATABASES={\\n        'default': {\\n            'ENGINE': 'django.db.backends.sqlite3',\\n            'NAME': ':memory:',\\n        }\\n    },\\n    DEFAULT_AUTO_FIELD='django.db.models.AutoField',\\n)\\n\\nimport django\\nfrom django.db import connection\\n\\ndjango.setup()\\n\\nfrom repro_app.models import Article\\n\\n# Create the table for Article\\nwith connection.schema_editor() as schema_editor:\\n    schema_editor.create_model(Article)\\n\\n# Insert a row\\nArticle.objects.create(slug='a')\\n\\n# Call in_bulk on the field that is unique via UniqueConstraint (not unique=True)\\ntry:\\n    Article.objects.in_bulk(field_name='slug')\\nexcept ValueError as e:\\n    msg = str(e)\\n    # Expected buggy behavior: in_bulk raises ValueError saying field isn't unique\\n    if \\\"in_bulk()'s field_name must be a unique field\\\" in msg:\\n        print('Reproduced bug: in_bulk raised ValueError:', msg, file=sys.stderr)\\n        # Non-zero exit to indicate bug present\\n        sys.exit(1)\\n    else:\\n        # Unexpected ValueError\\n        raise\\nelse:\\n    # No exception: bug fixed\\n    print('in_bulk succeeded; bug appears fixed')\\n    sys.exit(0)\\nPY\\n\\n# Make sure files saved\\nls -l /tmp/repro_app /tmp/repro.py\\n\"}",
+            "name": "bash"
+          },
+          "id": "call_GxPwUikI4h7c7NRW2FHAX2qD",
+          "type": "function"
+        }
+      ],
+      "function_call": null,
+      "provider_specific_fields": {
+        "refusal": null
+      },
+      "annotations": [],
+      "extra": {
+        "actions": [
+          {
+            "tool": "bash",
+            "args": {
+              "command": "mkdir -p /tmp/repro_app\ncat > /tmp/repro_app/__init__.py << 'PY'\n# repro_app package\nPY\n\ncat > /tmp/repro_app/models.py << 'PY'\nfrom django.db import models\n\nclass Article(models.Model):\n    slug = models.CharField(max_length=255)\n\n    class Meta:\n        app_label = 'repro_app'\n        constraints = [\n            models.UniqueConstraint(fields=['slug'], name='%(app_label)s_%(class)s_slug_unq'),\n        ]\nPY\n\ncat > /tmp/repro.py << 'PY'\nimport sys\nimport os\n\n# Ensure /tmp is on path to import repro_app\nsys.path.insert(0, '/tmp')\n\nfrom django.conf import settings\n\nsettings.configure(\n    INSTALLED_APPS=[\n        'django.contrib.contenttypes',\n        'repro_app',\n    ],\n    DATABASES={\n        'default': {\n            'ENGINE': 'django.db.backends.sqlite3',\n            'NAME': ':memory:',\n        }\n    },\n    DEFAULT_AUTO_FIELD='django.db.models.AutoField',\n)\n\nimport django\nfrom django.db import connection\n\ndjango.setup()\n\nfrom repro_app.models import Article\n\n# Create the table for Article\nwith connection.schema_editor() as schema_editor:\n    schema_editor.create_model(Article)\n\n# Insert a row\nArticle.objects.create(slug='a')\n\n# Call in_bulk on the field that is unique via UniqueConstraint (not unique=True)\ntry:\n    Article.objects.in_bulk(field_name='slug')\nexcept ValueError as e:\n    msg = str(e)\n    # Expected buggy behavior: in_bulk raises ValueError saying field isn't unique\n    if \"in_bulk()'s field_name must be a unique field\" in msg:\n        print('Reproduced bug: in_bulk raised ValueError:', msg, file=sys.stderr)\n        # Non-zero exit to indicate bug present\n        sys.exit(1)\n    else:\n        # Unexpected ValueError\n        raise\nelse:\n    # No exception: bug fixed\n    print('in_bulk succeeded; bug appears fixed')\n    sys.exit(0)\nPY\n\n# Make sure files saved\nls -l /tmp/repro_app /tmp/repro.py\n"
+            },
+            "tool_call_id": "call_GxPwUikI4h7c7NRW2FHAX2qD",
+            "command": "bash {\"command\": \"mkdir -p /tmp/repro_app\\ncat > /tmp/repro_app/__init__.py << 'PY'\\n# repro_app package\\nPY\\n\\ncat > /tmp/repro_app/models.py << 'PY'\\nfrom django.db import models\\n\\nclass Article(models.Model):\\n    slug = models.CharField(max_length=255)\\n\\n    class Meta:\\n        app_label = 'repro_app'\\n        constraints = [\\n            models.UniqueConstraint(fields=['slug'], name='%(app_label)s_%(class)s_slug_unq'),\\n        ]\\nPY\\n\\ncat > /tmp/repro.py << 'PY'\\nimport sys\\nimport os\\n\\n# Ensure /tmp is on path to import repro_app\\nsys.path.insert(0, '/tmp')\\n\\nfrom django.conf import settings\\n\\nsettings.configure(\\n    INSTALLED_APPS=[\\n        'django.contrib.contenttypes',\\n        'repro_app',\\n    ],\\n    DATABASES={\\n        'default': {\\n            'ENGINE': 'django.db.backends.sqlite3',\\n            'NAME': ':memory:',\\n        }\\n    },\\n    DEFAULT_AUTO_FIELD='django.db.models.AutoField',\\n)\\n\\nimport django\\nfrom django.db import connection\\n\\ndjango.setup()\\n\\nfrom repro_app.models import Article\\n\\n# Create the table for Article\\nwith connection.schema_editor() as schema_editor:\\n    schema_editor.create_model(Article)\\n\\n# Insert a row\\nArticle.objects.create(slug='a')\\n\\n# Call in_bulk on the field that is unique via UniqueConstraint (not unique=True)\\ntry:\\n    Article.objects.in_bulk(field_name='slug')\\nexcept ValueError as e:\\n    msg = str(e)\\n    # Expected buggy behavior: in_bulk raises ValueError saying field isn't unique\\n    if \\\"in_bulk()'s field_name must be a unique field\\\" in msg:\\n        print('Reproduced bug: in_bulk raised ValueError:', msg, file=sys.stderr)\\n        # Non-zero exit to indicate bug present\\n        sys.exit(1)\\n    else:\\n        # Unexpected ValueError\\n        raise\\nelse:\\n    # No exception: bug fixed\\n    print('in_bulk succeeded; bug appears fixed')\\n    sys.exit(0)\\nPY\\n\\n# Make sure files saved\\nls -l /tmp/repro_app /tmp/repro.py\\n\"}"
+          }
+        ],
+        "response": {
+          "id": "chatcmpl-EfOA47LLKSosNVQbBuYdJCmUw9XIp",
+          "created": 1793533032,
+          "model": "gpt-5-mini-2025-08-07",
+          "object": "chat.completion",
+          "system_fingerprint": null,
+          "choices": [
+            {
+              "finish_reason": "tool_calls",
+              "index": 0,
+              "message": {
+                "content": "I'll create a small Django app under /tmp, write the repro script, run it to show the ValueError, and register the repro.",
+                "role": "assistant",
+                "tool_calls": [
+                  {
+                    "function": {
+                      "arguments": "{\"command\":\"mkdir -p /tmp/repro_app\\ncat > /tmp/repro_app/__init__.py << 'PY'\\n# repro_app package\\nPY\\n\\ncat > /tmp/repro_app/models.py << 'PY'\\nfrom django.db import models\\n\\nclass Article(models.Model):\\n    slug = models.CharField(max_length=255)\\n\\n    class Meta:\\n        app_label = 'repro_app'\\n        constraints = [\\n            models.UniqueConstraint(fields=['slug'], name='%(app_label)s_%(class)s_slug_unq'),\\n        ]\\nPY\\n\\ncat > /tmp/repro.py << 'PY'\\nimport sys\\nimport os\\n\\n# Ensure /tmp is on path to import repro_app\\nsys.path.insert(0, '/tmp')\\n\\nfrom django.conf import settings\\n\\nsettings.configure(\\n    INSTALLED_APPS=[\\n        'django.contrib.contenttypes',\\n        'repro_app',\\n    ],\\n    DATABASES={\\n        'default': {\\n            'ENGINE': 'django.db.backends.sqlite3',\\n            'NAME': ':memory:',\\n        }\\n    },\\n    DEFAULT_AUTO_FIELD='django.db.models.AutoField',\\n)\\n\\nimport django\\nfrom django.db import connection\\n\\ndjango.setup()\\n\\nfrom repro_app.models import Article\\n\\n# Create the table for Article\\nwith connection.schema_editor() as schema_editor:\\n    schema_editor.create_model(Article)\\n\\n# Insert a row\\nArticle.objects.create(slug='a')\\n\\n# Call in_bulk on the field that is unique via UniqueConstraint (not unique=True)\\ntry:\\n    Article.objects.in_bulk(field_name='slug')\\nexcept ValueError as e:\\n    msg = str(e)\\n    # Expected buggy behavior: in_bulk raises ValueError saying field isn't unique\\n    if \\\"in_bulk()'s field_name must be a unique field\\\" in msg:\\n        print('Reproduced bug: in_bulk raised ValueError:', msg, file=sys.stderr)\\n        # Non-zero exit to indicate bug present\\n        sys.exit(1)\\n    else:\\n        # Unexpected ValueError\\n        raise\\nelse:\\n    # No exception: bug fixed\\n    print('in_bulk succeeded; bug appears fixed')\\n    sys.exit(0)\\nPY\\n\\n# Make sure files saved\\nls -l /tmp/repro_app /tmp/repro.py\\n\"}",
+                      "name": "bash"
+                    },
+                    "id": "call_GxPwUikI4h7c7NRW2FHAX2qD",
+                    "type": "function"
+                  }
+                ],
+                "function_call": null,
+                "provider_specific_fields": {
+                  "refusal": null
+                },
+                "annotations": []
+              },
+              "provider_specific_fields": {}
+            }
+          ],
+          "usage": {
+            "completion_tokens": 2371,
+            "prompt_tokens": 852,
+            "total_tokens": 3223,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 1792,
+              "rejected_prediction_tokens": 0
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cached_tokens": 0
+            }
+          },
+          "moderation": null,
+          "service_tier": "flex"
+        },
+        "cost": 0.0024774999999999997,
+        "timestamp": 1793533047.110553
+      }
+    },
+    {
+      "content": "exit code 0\n-rw-r--r-- 1 root root 1333 Nov  1 11:37 /tmp/repro.py\n\n/tmp/repro_app:\ntotal 8\n-rw-r--r-- 1 root root  20 Nov  1 11:37 __init__.py\n-rw-r--r-- 1 root root 281 Nov  1 11:37 models.py\n",
+      "extra": {
+        "raw_output": "exit code 0\n-rw-r--r-- 1 root root 1333 Nov  1 11:37 /tmp/repro.py\n\n/tmp/repro_app:\ntotal 8\n-rw-r--r-- 1 root root  20 Nov  1 11:37 __init__.py\n-rw-r--r-- 1 root root 281 Nov  1 11:37 models.py\n",
+        "returncode": 0,
+        "timestamp": 1793533049.338136,
+        "exception_info": ""
+      },
+      "tool_call_id": "call_GxPwUikI4h7c7NRW2FHAX2qD",
+      "role": "tool"
+    },
+    {
+      "content": null,
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\"command\":\"python3 /tmp/repro.py\"}",
+            "name": "bash"
+          },
+          "id": "call_euvVvQS2S7F3GF9RaCtvj5zz",
+          "type": "function"
+        }
+      ],
+      "function_call": null,
+      "provider_specific_fields": {
+        "refusal": null
+      },
+      "annotations": [],
+      "extra": {
+        "actions": [
+          {
+            "tool": "bash",
+            "args": {
+              "command": "python3 /tmp/repro.py"
+            },
+            "tool_call_id": "call_euvVvQS2S7F3GF9RaCtvj5zz",
+            "command": "bash {\"command\": \"python3 /tmp/repro.py\"}"
+          }
+        ],
+        "response": {
+          "id": "chatcmpl-EfOAMooTe9xfjEsYhdGYBE1oBCr2i",
+          "created": 1793533050,
+          "model": "gpt-5-mini-2025-08-07",
+          "object": "chat.completion",
+          "system_fingerprint": null,
+          "choices": [
+            {
+              "finish_reason": "tool_calls",
+              "index": 0,
+              "message": {
+                "content": null,
+                "role": "assistant",
+                "tool_calls": [
+                  {
+                    "function": {
+                      "arguments": "{\"command\":\"python3 /tmp/repro.py\"}",
+                      "name": "bash"
+                    },
+                    "id": "call_euvVvQS2S7F3GF9RaCtvj5zz",
+                    "type": "function"
+                  }
+                ],
+                "function_call": null,
+                "provider_specific_fields": {
+                  "refusal": null
+                },
+                "annotations": []
+              },
+              "provider_specific_fields": {}
+            }
+          ],
+          "usage": {
+            "completion_tokens": 23,
+            "prompt_tokens": 1525,
+            "total_tokens": 1548,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 0,
+              "rejected_prediction_tokens": 0
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cached_tokens": 0
+            }
+          },
+          "moderation": null,
+          "service_tier": "flex"
+        },
+        "cost": 0.00021362499999999997,
+        "timestamp": 1793533050.423357
+      }
+    },
+    {
+      "content": "exit code 1\nReproduced bug: in_bulk raised ValueError: in_bulk()'s field_name must be a unique field but 'slug' isn't.\n",
+      "extra": {
+        "raw_output": "exit code 1\nReproduced bug: in_bulk raised ValueError: in_bulk()'s field_name must be a unique field but 'slug' isn't.\n",
+        "returncode": 0,
+        "timestamp": 1793533052.942753,
+        "exception_info": ""
+      },
+      "tool_call_id": "call_euvVvQS2S7F3GF9RaCtvj5zz",
+      "role": "tool"
+    },
+    {
+      "content": null,
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\"path\":\"/tmp/repro.py\"}",
+            "name": "register_repro"
+          },
+          "id": "call_AG1giUcYwVsXgxuWklp19vSp",
+          "type": "function"
+        }
+      ],
+      "function_call": null,
+      "provider_specific_fields": {
+        "refusal": null
+      },
+      "annotations": [],
+      "extra": {
+        "actions": [
+          {
+            "tool": "register_repro",
+            "args": {
+              "path": "/tmp/repro.py"
+            },
+            "tool_call_id": "call_AG1giUcYwVsXgxuWklp19vSp",
+            "command": "register_repro {\"path\": \"/tmp/repro.py\"}"
+          }
+        ],
+        "response": {
+          "id": "chatcmpl-EfOAPF2GDxHI7RfKKLO9dcRZUrt4C",
+          "created": 1793533053,
+          "model": "gpt-5-mini-2025-08-07",
+          "object": "chat.completion",
+          "system_fingerprint": null,
+          "choices": [
+            {
+              "finish_reason": "tool_calls",
+              "index": 0,
+              "message": {
+                "content": null,
+                "role": "assistant",
+                "tool_calls": [
+                  {
+                    "function": {
+                      "arguments": "{\"path\":\"/tmp/repro.py\"}",
+                      "name": "register_repro"
+                    },
+                    "id": "call_AG1giUcYwVsXgxuWklp19vSp",
+                    "type": "function"
+                  }
+                ],
+                "function_call": null,
+                "provider_specific_fields": {
+                  "refusal": null
+                },
+                "annotations": []
+              },
+              "provider_specific_fields": {}
+            }
+          ],
+          "usage": {
+            "completion_tokens": 22,
+            "prompt_tokens": 1592,
+            "total_tokens": 1614,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": 0,
+              "audio_tokens": 0,
+              "reasoning_tokens": 0,
+              "rejected_prediction_tokens": 0
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": 0,
+              "cached_tokens": 0
+            }
+          },
+          "moderation": null,
+          "service_tier": "flex"
+        },
+        "cost": 0.00022099999999999998,
+        "timestamp": 1793533054.051872
+      }
+    },
+    {
+      "role": "exit",
+      "content": "Submitted",
+      "extra": {
+        "exit_status": "Submitted",
+        "submission": "import sys\nimport os\n\n# Ensure /tmp is on path to import repro_app\nsys.path.insert(0, '/tmp')\n\nfrom django.conf import settings\n\nsettings.configure(\n    INSTALLED_APPS=[\n        'django.contrib.contenttypes',\n        'repro_app',\n    ],\n    DATABASES={\n        'default': {\n            'ENGINE': 'django.db.backends.sqlite3',\n            'NAME': ':memory:',\n        }\n    },\n    DEFAULT_AUTO_FIELD='django.db.models.AutoField',\n)\n\nimport django\nfrom django.db import connection\n\ndjango.setup()\n\nfrom repro_app.models import Article\n\n# Create the table for Article\nwith connection.schema_editor() as schema_editor:\n    schema_editor.create_model(Article)\n\n# Insert a row\nArticle.objects.create(slug='a')\n\n# Call in_bulk on the field that is unique via UniqueConstraint (not unique=True)\ntry:\n    Article.objects.in_bulk(field_name='slug')\nexcept ValueError as e:\n    msg = str(e)\n    # Expected buggy behavior: in_bulk raises ValueError saying field isn't unique\n    if \"in_bulk()'s field_name must be a unique field\" in msg:\n        print('Reproduced bug: in_bulk raised ValueError:', msg, file=sys.stderr)\n        # Non-zero exit to indicate bug present\n        sys.exit(1)\n    else:\n        # Unexpected ValueError\n        raise\nelse:\n    # No exception: bug fixed\n    print('in_bulk succeeded; bug appears fixed')\n    sys.exit(0)\n",
+        "verified": true
+      }
+    }
+  ],
+  "trajectory_format": "mini-swe-agent-1.1"
+}

@@ -1,0 +1,21 @@
+diff --git a/django/db/migrations/serializer.py b/django/db/migrations/serializer.py
+index 27b5cbd379..00e96df6ed 100755
+--- a/django/db/migrations/serializer.py
++++ b/django/db/migrations/serializer.py
+@@ -120,7 +120,15 @@ class EnumSerializer(BaseSerializer):
+     def serialize(self):
+         enum_class = self.value.__class__
+         module = enum_class.__module__
+-        v_string, v_imports = serializer_factory(self.value.value).serialize()
++        val = self.value.value
++        # If the enum member's value is a lazily translated string (Promise or LazyObject),
++        # serialize by name (EnumClass['NAME']) to avoid embedding a translatable
++        # value into migrations. Otherwise, serialize by value as before (EnumClass(value)).
++        if isinstance(val, (Promise, LazyObject)):
++            name_string, name_imports = serializer_factory(self.value.name).serialize()
++            imports = {'import %s' % module, *name_imports}
++            return "%s.%s[%s]" % (module, enum_class.__name__, name_string), imports
++        v_string, v_imports = serializer_factory(val).serialize()
+         imports = {'import %s' % module, *v_imports}
+         return "%s.%s(%s)" % (module, enum_class.__name__, v_string), imports
+ 

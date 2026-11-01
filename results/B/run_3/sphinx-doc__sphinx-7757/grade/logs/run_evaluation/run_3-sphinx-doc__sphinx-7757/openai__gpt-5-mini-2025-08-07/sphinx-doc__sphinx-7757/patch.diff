@@ -1,0 +1,59 @@
+diff --git a/sphinx/util/inspect.py b/sphinx/util/inspect.py
+index 15f0d66e2..c0312bdc1 100644
+--- a/sphinx/util/inspect.py
++++ b/sphinx/util/inspect.py
+@@ -515,20 +515,46 @@ def signature_from_str(signature: str) -> inspect.Signature:
+     """Create a Signature object from string."""
+     module = ast.parse('def func' + signature + ': pass')
+     definition = cast(ast.FunctionDef, module.body[0])  # type: ignore
+-
++  
+     # parameters
+     args = definition.args
+     params = []
+-
+-    if hasattr(args, "posonlyargs"):
+-        for arg in args.posonlyargs:  # type: ignore
++  
++    # A tiny helper type to represent defaults parsed from source.  We store
++    # them as a subclass of 'str' so that equality checks in tests against the
++    # expected string representation (e.g. '0' or "'str'") continue to work,
++    # but override __repr__ so that object_description() will not add extra
++    # quoting when rendering signatures.
++    class _CodeDefault(str):
++        def __repr__(self) -> str:  # pragma: no cover - simple forwarding
++            return str(self)
++
++    # Handle positional-only args (PEP 570) and positional-or-keyword args.
++    posonly_count = len(args.posonlyargs) if hasattr(args, "posonlyargs") else 0
++    combined_pos_count = posonly_count + len(args.args)
++    defaults_list = list(args.defaults)
++  
++    if posonly_count:
++        for i, arg in enumerate(args.posonlyargs):  # type: ignore
++            # defaults_list corresponds to the last N of the combined positional
++            # parameters (posonlyargs + args).  Compute whether this arg has a
++            # default and pick it if so.
++            if defaults_list and i >= combined_pos_count - len(defaults_list):
++                default = ast_unparse(defaults_list[i - (combined_pos_count - len(defaults_list))])
++                if default is not None:
++                    default = _CodeDefault(default)
++            else:
++                default = Parameter.empty
+             annotation = ast_unparse(arg.annotation) or Parameter.empty
+             params.append(Parameter(arg.arg, Parameter.POSITIONAL_ONLY,
+-                                    annotation=annotation))
+-
++                                    default=default, annotation=annotation))
++  
+     for i, arg in enumerate(args.args):
+-        if len(args.args) - i <= len(args.defaults):
+-            default = ast_unparse(args.defaults[-len(args.args) + i])
++        combined_index = posonly_count + i
++        if defaults_list and combined_index >= combined_pos_count - len(defaults_list):
++            default = ast_unparse(defaults_list[combined_index - (combined_pos_count - len(defaults_list))])
++            if default is not None:
++                default = _CodeDefault(default)
+         else:
+             default = Parameter.empty
+ 

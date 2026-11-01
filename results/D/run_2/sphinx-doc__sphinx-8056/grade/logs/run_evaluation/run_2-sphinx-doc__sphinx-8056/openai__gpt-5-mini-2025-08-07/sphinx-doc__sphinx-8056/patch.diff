@@ -1,0 +1,43 @@
+diff --git a/sphinx/ext/napoleon/docstring.py b/sphinx/ext/napoleon/docstring.py
+index b3daa06f1..8f27c3e27 100644
+--- a/sphinx/ext/napoleon/docstring.py
++++ b/sphinx/ext/napoleon/docstring.py
+@@ -400,7 +400,14 @@ class GoogleDocstring:
+                 lines.append(':%s %s:' % (field_role, _name))
+ 
+             if _type:
+-                lines.append(':%s %s: %s' % (type_role, _name, _type))
++                # If there are multiple parameter names in _name (e.g. "x1, x2"),
++                # emit a separate :type: line for each parameter. This prevents
++                # Sphinx from interpreting a single :type: directive with a
++                # comma-containing target, which can lead to rendering issues
++                # when parameters are documented together on one line.
++                names = [n.strip() for n in _name.split(',') if n.strip()]
++                for name in names:
++                    lines.append(':%s %s: %s' % (type_role, name, _type))
+         return lines + ['']
+ 
+     def _format_field(self, _name: str, _type: str, _desc: List[str]) -> List[str]:
+@@ -1096,11 +1103,17 @@ class NumpyDocstring(GoogleDocstring):
+             _name, _type = line, ''
+         _name, _type = _name.strip(), _type.strip()
+         _name = self._escape_args_and_kwargs(_name)
+-        _type = _convert_numpy_type_spec(
+-            _type,
+-            location=self._get_location(),
+-            translations=self._config.napoleon_type_aliases or {},
+-        )
++        # Only convert type specifications into Sphinx role markup when
++        # napoleon is configured to use separate :param/:type or :returns/:rtype
++        # directives. When types are rendered inline (napoleon_use_param=False),
++        # keep them as plain text so that _format_field can emphasize them.
++        if getattr(self._config, 'napoleon_use_param', False) or \
++               getattr(self._config, 'napoleon_use_rtype', False):
++            _type = _convert_numpy_type_spec(
++                _type,
++                location=self._get_location(),
++                translations=self._config.napoleon_type_aliases or {},
++            )
+ 
+         if prefer_type and not _type:
+             _type, _name = _name, _type

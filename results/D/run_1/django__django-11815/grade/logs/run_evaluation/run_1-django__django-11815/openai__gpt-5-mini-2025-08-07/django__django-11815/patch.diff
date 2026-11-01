@@ -1,0 +1,24 @@
+diff --git a/django/db/migrations/serializer.py b/django/db/migrations/serializer.py
+index 27b5cbd379..a5513acdf0 100755
+--- a/django/db/migrations/serializer.py
++++ b/django/db/migrations/serializer.py
+@@ -120,7 +120,18 @@ class EnumSerializer(BaseSerializer):
+     def serialize(self):
+         enum_class = self.value.__class__
+         module = enum_class.__module__
+-        v_string, v_imports = serializer_factory(self.value.value).serialize()
++        # Prefer serializing by value for consistency with previous behavior
++        # (e.g. re.RegexFlag(16)), but when the enum value is a lazy translation
++        # (Promise) or a LazyObject, serializing by value would force
++        # evaluation and could produce locale-dependent strings in migration
++        # files. In that case, reference the enum member by name instead.
++        from django.utils.functional import Promise, LazyObject
++        value = self.value.value
++        if isinstance(value, (Promise, LazyObject)):
++            imports = {'import %s' % module}
++            return "%s.%s.%s" % (module, enum_class.__name__, self.value.name), imports
++        # Fallback to the older behavior: serialize as EnumClass(value)
++        v_string, v_imports = serializer_factory(value).serialize()
+         imports = {'import %s' % module, *v_imports}
+         return "%s.%s(%s)" % (module, enum_class.__name__, v_string), imports
+ 

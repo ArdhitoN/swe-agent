@@ -1,0 +1,17 @@
+diff --git a/sphinx/pycode/ast.py b/sphinx/pycode/ast.py
+index f541ec0a9..6d400a214 100644
+--- a/sphinx/pycode/ast.py
++++ b/sphinx/pycode/ast.py
+@@ -214,7 +214,11 @@ class _UnparseVisitor(ast.NodeVisitor):
+ 
+     def visit_Tuple(self, node: ast.Tuple) -> str:
+         if node.elts:
+-            return "(" + ", ".join(self.visit(e) for e in node.elts) + ")"
++            elts = [self.visit(e) for e in node.elts]
++            if len(elts) == 1:
++                # single element tuple must keep trailing comma
++                return "(%s,)" % elts[0]
++            return "(" + ", ".join(elts) + ")"
+         else:
+             return "()"
+ 

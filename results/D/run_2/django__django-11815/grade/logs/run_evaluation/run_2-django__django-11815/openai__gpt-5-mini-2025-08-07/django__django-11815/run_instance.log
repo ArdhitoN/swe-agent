@@ -1,0 +1,82 @@
+2026-11-01 18:20:06,114 - INFO - Creating container for django__django-11815...
+2026-11-01 18:20:06,188 - INFO - Container for django__django-11815 created: 56ec917a754e2ab147bb5a4a453234f1628d14dd5f56eb2b9e90b7ce68e5fa97
+2026-11-01 18:20:06,313 - INFO - Container for django__django-11815 started: 56ec917a754e2ab147bb5a4a453234f1628d14dd5f56eb2b9e90b7ce68e5fa97
+2026-11-01 18:20:06,314 - INFO - Intermediate patch for django__django-11815 written to logs/run_evaluation/run_2-django__django-11815/openai__gpt-5-mini-2025-08-07/django__django-11815/patch.diff, now applying to container...
+2026-11-01 18:20:06,448 - INFO - >>>>> Applied Patch:
+Checking patch django/db/migrations/serializer.py...
+Applied patch django/db/migrations/serializer.py cleanly.
+
+2026-11-01 18:20:07,243 - INFO - Git diff before:
+diff --git a/django/db/migrations/serializer.py b/django/db/migrations/serializer.py
+index 27b5cbd379..761115d99b 100755
+--- a/django/db/migrations/serializer.py
++++ b/django/db/migrations/serializer.py
+@@ -118,9 +118,26 @@ class DictionarySerializer(BaseSerializer):
+ 
+ class EnumSerializer(BaseSerializer):
+     def serialize(self):
++        """Serialize an enum member by referencing it by name (EnumClass.NAME).
++
++        Using the member name avoids relying on the member value, which may be
++        subject to translation or otherwise not stable across environments.
++        """
+         enum_class = self.value.__class__
+         module = enum_class.__module__
+-        v_string, v_imports = serializer_factory(self.value.value).serialize()
++        # Prefer attribute access by name (e.g. module.EnumClass.MEMBER) when
++        # the enum member's value is a lazy object (e.g. gettext_lazy). This
++        # avoids serializing the translated value into migration files. For
++        # normal values, preserve the previous behaviour of serializing by
++        # value so existing tests and expectations remain unchanged.
++        name = self.value.name
++        value = self.value.value
++        from django.utils.functional import Promise, LazyObject
++        if isinstance(value, (Promise, LazyObject)):
++            imports = {'import %s' % module}
++            return "%s.%s.%s" % (module, enum_class.__name__, name), imports
++        # Fallback to previous behaviour: serialize by value.
++        v_string, v_imports = serializer_factory(value).serialize()
+         imports = {'import %s' % module, *v_imports}
+         return "%s.%s(%s)" % (module, enum_class.__name__, v_string), imports
+2026-11-01 18:20:07,243 - INFO - Eval script for django__django-11815 written to logs/run_evaluation/run_2-django__django-11815/openai__gpt-5-mini-2025-08-07/django__django-11815/eval.sh; copying to container...
+2026-11-01 18:20:23,088 - INFO - Test runtime: 15.78 seconds
+2026-11-01 18:20:23,090 - INFO - Test output for django__django-11815 written to logs/run_evaluation/run_2-django__django-11815/openai__gpt-5-mini-2025-08-07/django__django-11815/test_output.txt
+2026-11-01 18:20:23,206 - INFO - Git diff after:
+diff --git a/django/db/migrations/serializer.py b/django/db/migrations/serializer.py
+index 27b5cbd379..761115d99b 100755
+--- a/django/db/migrations/serializer.py
++++ b/django/db/migrations/serializer.py
+@@ -118,9 +118,26 @@ class DictionarySerializer(BaseSerializer):
+ 
+ class EnumSerializer(BaseSerializer):
+     def serialize(self):
++        """Serialize an enum member by referencing it by name (EnumClass.NAME).
++
++        Using the member name avoids relying on the member value, which may be
++        subject to translation or otherwise not stable across environments.
++        """
+         enum_class = self.value.__class__
+         module = enum_class.__module__
+-        v_string, v_imports = serializer_factory(self.value.value).serialize()
++        # Prefer attribute access by name (e.g. module.EnumClass.MEMBER) when
++        # the enum member's value is a lazy object (e.g. gettext_lazy). This
++        # avoids serializing the translated value into migration files. For
++        # normal values, preserve the previous behaviour of serializing by
++        # value so existing tests and expectations remain unchanged.
++        name = self.value.name
++        value = self.value.value
++        from django.utils.functional import Promise, LazyObject
++        if isinstance(value, (Promise, LazyObject)):
++            imports = {'import %s' % module}
++            return "%s.%s.%s" % (module, enum_class.__name__, name), imports
++        # Fallback to previous behaviour: serialize by value.
++        v_string, v_imports = serializer_factory(value).serialize()
+         imports = {'import %s' % module, *v_imports}
+         return "%s.%s(%s)" % (module, enum_class.__name__, v_string), imports
+2026-11-01 18:20:23,206 - INFO - Grading answer for django__django-11815...
+2026-11-01 18:20:23,211 - INFO - report: {'django__django-11815': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'infra_failure': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_serialize_class_based_validators (migrations.test_writer.WriterTests)', 'test_serialize_enums (migrations.test_writer.WriterTests)']}, 'PASS_TO_PASS': {'success': ['test_args_kwargs_signature (migrations.test_writer.OperationWriterTests)', 'test_args_signature (migrations.test_writer.OperationWriterTests)', 'test_empty_signature (migrations.test_writer.OperationWriterTests)', 'test_expand_args_signature (migrations.test_writer.OperationWriterTests)', 'test_kwargs_signature (migrations.test_writer.OperationWriterTests)', 'test_multiline_args_signature (migrations.test_writer.OperationWriterTests)', 'test_nested_args_signature (migrations.test_writer.OperationWriterTests)', 'test_nested_operation_expand_args_signature (migrations.test_writer.OperationWriterTests)', 'test_custom_operation (migrations.test_writer.WriterTests)', 'test_deconstruct_class_arguments (migrations.test_writer.WriterTests)', 'test_migration_file_header_comments (migrations.test_writer.WriterTests)', 'test_migration_path (migrations.test_writer.WriterTests)', 'test_models_import_omitted (migrations.test_writer.WriterTests)', 'test_register_non_serializer (migrations.test_writer.WriterTests)', 'test_register_serializer (migrations.test_writer.WriterTests)', 'test_serialize_builtin_types (migrations.test_writer.WriterTests)', 'test_serialize_builtins (migrations.test_writer.WriterTests)', 'test_serialize_choices (migrations.test_writer.WriterTests)', 'test_serialize_collections (migrations.test_writer.WriterTests)', 'test_serialize_compiled_regex (migrations.test_writer.WriterTests)', 'test_serialize_constants (migrations.test_writer.WriterTests)', 'test_serialize_datetime (migrations.test_writer.WriterTests)', 'test_serialize_empty_nonempty_tuple (migrations.test_writer.WriterTests)', 'test_serialize_fields (migrations.test_writer.WriterTests)', 'test_serialize_frozensets (migrations.test_writer.WriterTests)', 'test_serialize_functions (migrations.test_writer.WriterTests)', 'test_serialize_functools_partial (migrations.test_writer.WriterTests)', 'test_serialize_functools_partialmethod (migrations.test_writer.WriterTests)', 'test_serialize_iterators (migrations.test_writer.WriterTests)', 'test_serialize_lazy_objects (migrations.test_writer.WriterTests)', "A reference in a local scope can't be serialized.", 'test_serialize_managers (migrations.test_writer.WriterTests)', 'test_serialize_multiline_strings (migrations.test_writer.WriterTests)', 'test_serialize_numbers (migrations.test_writer.WriterTests)', 'test_serialize_range (migrations.test_writer.WriterTests)', 'test_serialize_set (migrations.test_writer.WriterTests)', 'test_serialize_settings (migrations.test_writer.WriterTests)', 'test_serialize_strings (migrations.test_writer.WriterTests)', 'test_serialize_timedelta (migrations.test_writer.WriterTests)', 'test_serialize_type_none (migrations.test_writer.WriterTests)', 'An unbound method used within a class body can be serialized.', 'test_serialize_uuid (migrations.test_writer.WriterTests)', 'test_simple_migration (migrations.test_writer.WriterTests)', 'test_sorted_imports (migrations.test_writer.WriterTests)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-11815: resolved: False
+2026-11-01 18:20:23,212 - INFO - Attempting to stop container sweb.eval.django__django-11815.run_2-django__django-11815...
+2026-11-01 18:20:38,521 - INFO - Container sweb.eval.django__django-11815.run_2-django__django-11815 stopped successfully.
+2026-11-01 18:20:38,522 - INFO - Attempting to remove container sweb.eval.django__django-11815.run_2-django__django-11815...
+2026-11-01 18:20:38,579 - INFO - Container sweb.eval.django__django-11815.run_2-django__django-11815 removed successfully.

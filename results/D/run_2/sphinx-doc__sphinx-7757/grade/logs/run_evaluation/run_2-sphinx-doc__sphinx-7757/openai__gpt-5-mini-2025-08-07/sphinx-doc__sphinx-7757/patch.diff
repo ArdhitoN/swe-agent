@@ -1,0 +1,37 @@
+diff --git a/sphinx/util/inspect.py b/sphinx/util/inspect.py
+index 15f0d66e2..d2bf3b650 100644
+--- a/sphinx/util/inspect.py
++++ b/sphinx/util/inspect.py
+@@ -520,18 +520,25 @@ def signature_from_str(signature: str) -> inspect.Signature:
+     args = definition.args
+     params = []
+ 
++    # align defaults for positional-only and positional-or-keyword args
++    defaults = list(args.defaults)
++    posonly_count = 0
+     if hasattr(args, "posonlyargs"):
+-        for arg in args.posonlyargs:  # type: ignore
++        posonly_count = len(args.posonlyargs)  # type: ignore
++    positionals = len(args.args) + posonly_count
++    for _ in range(len(defaults), positionals):
++        defaults.insert(0, None)
++    if hasattr(args, "posonlyargs"):
++        for i, arg in enumerate(args.posonlyargs):  # type: ignore
++            default_node = defaults[i]
++            default = ast_unparse(default_node) if default_node is not None else Parameter.empty
+             annotation = ast_unparse(arg.annotation) or Parameter.empty
+             params.append(Parameter(arg.arg, Parameter.POSITIONAL_ONLY,
+-                                    annotation=annotation))
++                                    default=default, annotation=annotation))
+ 
+     for i, arg in enumerate(args.args):
+-        if len(args.args) - i <= len(args.defaults):
+-            default = ast_unparse(args.defaults[-len(args.args) + i])
+-        else:
+-            default = Parameter.empty
+-
++        default_node = defaults[i + posonly_count]
++        default = ast_unparse(default_node) if default_node is not None else Parameter.empty
+         annotation = ast_unparse(arg.annotation) or Parameter.empty
+         params.append(Parameter(arg.arg, Parameter.POSITIONAL_OR_KEYWORD,
+                                 default=default, annotation=annotation))
