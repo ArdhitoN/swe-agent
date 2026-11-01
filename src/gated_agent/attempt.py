@@ -86,6 +86,8 @@ class GatedAgent(DefaultAgent):
             diff = self._current_patch()
             changed = action["tool"] in ("edit", "create") and text.startswith(("edited", "created"))
             self.detector.record(action["tool"], action["args"], text, diff, action["tool"] in PROGRESS_TOOLS, changed)
+            if changed or text.startswith(("registered:", "VERIFY")):
+                self.detector.progress_made()
         observations = self.model.format_observation_messages(message, outputs, self.get_template_vars())
         added = self.add_messages(*observations)
         return added + self._maybe_recover()
@@ -164,7 +166,8 @@ class GatedAgent(DefaultAgent):
         reason = self.detector.reason(exploring=exploring)
         if not reason:
             return []
-        level = self.detector.escalate()
+        # While still exploring, only nudge: rolling back or restarting there throws away reading, not mistakes.
+        level = self.detector.escalate(cap=NUDGE if exploring else RESTART)
         self.events.append({"step": self.n_calls, "event": "stuck", "reason": reason, "level": level})
         if level == NUDGE:
             return self.add_messages({"role": "user", "content": prompts.NUDGE_REPEAT.format(reason=reason)})
