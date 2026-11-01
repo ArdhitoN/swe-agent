@@ -1,0 +1,16 @@
+# secrets
+.env
+*.env
+# python
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+# harness scratch output (graded results are copied into results/)
+logs/
+/*.log
+
+# never commit local planning notes or documents
+*.pdf
+PLAN.md
