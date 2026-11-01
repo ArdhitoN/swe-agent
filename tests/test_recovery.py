@@ -27,3 +27,28 @@ def test_progress_resets_idle_counter():
         d.record("view", {"i": i}, f"o{i}", "", progress=False)
     d.record("edit", {"i": 9}, "ok", "x", progress=True)
     assert d.reason() is None
+
+
+def test_repeating_after_editing_a_file_is_not_a_loop():
+    d = StuckDetector()
+    for _ in range(3):
+        d.record("edit", {"path": "/tmp/repro.py"}, "edited", "", progress=True, changed_files=True)
+        d.record("register_repro", {"path": "/tmp/repro.py"}, "not registered", "", progress=True)
+    assert d.reason() is None
+
+
+def test_rollback_does_not_look_like_back_and_forth():
+    d = StuckDetector()
+    d.record("edit", {"n": 1}, "o1", "A", progress=True, changed_files=True)
+    d.record("edit", {"n": 2}, "o2", "B", progress=True, changed_files=True)
+    d.forget_code_history()  # rollback to A
+    d.record("edit", {"n": 3}, "o3", "A", progress=True, changed_files=True)
+    assert d.reason() is None
+
+
+def test_no_idle_alarm_while_exploring():
+    d = StuckDetector(idle_steps=3)
+    for i in range(5):
+        d.record("view", {"i": i}, f"o{i}", "", progress=False)
+    assert d.reason(exploring=True) is None
+    assert d.reason(exploring=False)
