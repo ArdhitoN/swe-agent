@@ -36,5 +36,17 @@ def select_tasks():
     print("dev:", *result["dev"], sep="\n  ")
 
 
+
+@app.command()
+def check_images(pull: bool = typer.Option(False, help="Download missing images, check them, delete them again")):
+    """Check each chosen bug's image: digest, future git history, internet access, emulation speed."""
+    from lift_eval.images import check_images as _check
+    from lift_eval.tasks import TASKS_DEV, TASKS_TEST
+
+    ids = TASKS_TEST.read_text().split() + TASKS_DEV.read_text().split()
+    for r in _check(ids, pull=pull):
+        print(r)
+
+
 if __name__ == "__main__":
     app()

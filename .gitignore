@@ -8,7 +8,7 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 # harness scratch output (graded results are copied into results/)
-logs/
+/logs/
 /*.log
 
 # never commit local planning notes or documents
