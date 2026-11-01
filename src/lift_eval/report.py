@@ -66,9 +66,13 @@ def build_report(bugs: list[str], verdicts: dict | None = None) -> str:
         lines.append(f"| {a}: {ARMS[a]} | {_pct(mean_rate(data[a]))} | {mean_rate(data[a]) * len(bugs):.2f} | "
                      f"{len(rates)} | {_pct(std)} | {cost} |")
 
+    lines += ["", "Costs for C and D are only their **extra** cost: C also reuses 3 baseline runs per bug "
+                  "(its full cost is about 3 × A's plus the extra), and D reuses our agent's first attempt."]
+
     # comparisons
     comparisons = [("B", "A", "**Lift: our agent vs baseline**"), ("D", "A", "One attempt of ours vs one baseline run"),
-                   ("B", "D", "Gain from extra attempts + selection"), ("B", "C", "Our agent vs the control")]
+                   ("B", "D", "Gain from extra attempts + selection"), ("B", "C", "Our agent vs the control"),
+                   ("C", "A", "Our selector on baseline patches vs one baseline run")]
     lines += ["", f"| Comparison | Difference | 95% interval | In bugs (of {n}) |", "|---|---|---|---|"]
     for hi, lo, label in comparisons:
         if hi in data and lo in data:
@@ -78,6 +82,13 @@ def build_report(bugs: list[str], verdicts: dict | None = None) -> str:
 
     if verdicts:
         clean = [b for b in bugs if verdicts.get(b, {}).get("verdict") == "clean"]
+        if not clean:
+            counts = {}
+            for b in bugs:
+                counts[verdicts.get(b, {}).get("verdict", "?")] = counts.get(verdicts.get(b, {}).get("verdict", "?"), 0) + 1
+            lines += ["", "**No bug was judged clean** by the memorization checks "
+                          f"({', '.join(f'{v} {k}' for k, v in sorted(counts.items()))}), so a lift on clean bugs "
+                          "can't be computed. See `reports/contamination.md` for what drives the verdicts."]
         if clean and "A" in data and "B" in data:
             d, lo_ci, hi_ci = bootstrap_diff({k: data["A"][k] for k in clean}, {k: data["B"][k] for k in clean})
             lines += ["", f"**Lift on the {len(clean)} bugs judged clean** (not memorized or suspect): "
