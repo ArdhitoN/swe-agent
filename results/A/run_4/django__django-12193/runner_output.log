@@ -1,0 +1,30 @@
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/Users/pinhomemacbook4/Library/Application 
+Support/mini-swe-agent/.env'
+minisweagent: INFO: Results will be saved to                                    
+/Users/pinhomemacbook4/job/smartm2m/swe-agent/results/A/run_4/django__django-121
+93                                                                              
+Logging to '/Users/pinhomemacbook4/job/smartm2m/swe-agent/results/A/run_4/django__django-12193/minisweagent.log'
+minisweagent: INFO: Loading dataset SWE-bench/SWE-bench_Verified, split test... 
+minisweagent: INFO: Instance filter: 500 -> 1 instances                         
+minisweagent: INFO: Running on 1 instances...                                   
+minisweagent: INFO: Building agent config from specs:                           
+['/Users/pinhomemacbook4/job/smartm2m/swe-agent/.venv/lib/python3.11/site-packag
+es/minisweagent/config/benchmarks/swebench.yaml',                               
+'model.model_kwargs.service_tier=flex']                                         
+minisweagent.environment: DEBUG: Starting container with command:               
+/Users/pinhomemacbook4/.docker/bin/docker run -d --name minisweagent-2ca0740c -w
+/testbed --rm                                                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-12193:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-2ca0740c with ID 
+a486819d569ebe9e02fa2628ebc8e5cf131c2c0a2f61858923aa47e4fbeefbe0                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/pinhomemacbook4/job/smartm2m/swe-agent/results/A/run_4/django__django-12
+193/django__django-12193/django__django-12193.traj.json'                        
+  Overall Progress ($0.01) ━━━━━━━━━━━━━━━━━━━━━━━ 1/1 100% 0:00:52 eta: 0:00:00
+┏━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Exit Status ┃ Count ┃ Most recent instances                                  ┃
+┡━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ Submitted   │     1 │ django__django-12193                                   │
+└─────────────┴───────┴────────────────────────────────────────────────────────┘

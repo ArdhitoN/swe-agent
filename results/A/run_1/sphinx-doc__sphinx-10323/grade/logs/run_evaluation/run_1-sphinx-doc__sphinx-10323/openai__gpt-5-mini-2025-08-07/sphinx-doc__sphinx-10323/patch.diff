@@ -1,0 +1,25 @@
+diff --git a/sphinx/directives/code.py b/sphinx/directives/code.py
+index dc44ed314..b398473e5 100644
+--- a/sphinx/directives/code.py
++++ b/sphinx/directives/code.py
+@@ -220,13 +220,18 @@ class LiteralIncludeReader:
+         if 'diff' in self.options:
+             lines = self.show_diff()
+         else:
++            # Apply dedent only to the included file content.  If dedent is
++            # applied after prepend/append, those strings will also be
++            # trimmed which is undesirable: prepend/append should be treated
++            # as literal lines to be inserted as-is.  Therefore, run
++            # dedent_filter before prepend/append filters.
+             filters = [self.pyobject_filter,
+                        self.start_filter,
+                        self.end_filter,
+                        self.lines_filter,
++                       self.dedent_filter,
+                        self.prepend_filter,
+-                       self.append_filter,
+-                       self.dedent_filter]
++                       self.append_filter]
+             lines = self.read_file(self.filename, location=location)
+             for func in filters:
+                 lines = func(lines, location=location)

@@ -1,0 +1,32 @@
+diff --git a/sphinx/ext/napoleon/docstring.py b/sphinx/ext/napoleon/docstring.py
+index 89a3b7939..4ab2599d7 100644
+--- a/sphinx/ext/napoleon/docstring.py
++++ b/sphinx/ext/napoleon/docstring.py
+@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
+ 
+ _directive_regex = re.compile(r'\.\. \S+::')
+ _google_section_regex = re.compile(r'^(\s|\w)+:\s*$')
+-_google_typed_arg_regex = re.compile(r'(.+?)\(\s*(.*[^\s]+)\s*\)')
++_google_typed_arg_regex = re.compile(r'(.+?)\(\s*(.*[^\s]+)\s*\)\s*$')
+ 
+ # Alternate pattern to detect a type followed by a name, where the type
+ # contains parentheses (for example: "dict(str, str) opc_meta"). The
+@@ -1194,7 +1194,17 @@ class NumpyDocstring(GoogleDocstring):
+         _name = self._escape_args_and_kwargs(_name)
+ 
+         if parse_type and not _type:
+-            _type = self._lookup_annotation(_name)
++            # handle the case where the docstring author wrote the type
++            # before the parameter name, e.g. "dict(str, str) opc_meta:".
++            # In that situation _name will contain both type and name
++            # so try to split them into type and name here. Fall back to
++            # looking up annotations when no match is found.
++            alt = _google_typed_arg_alt_regex.match(_name)
++            if alt:
++                _type = alt.group(1).strip()
++                _name = alt.group(2).strip()
++            else:
++                _type = self._lookup_annotation(_name)
+ 
+         if prefer_type and not _type:
+             _type, _name = _name, _type

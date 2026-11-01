@@ -1,0 +1,7 @@
+{
+  "django__django-12193": {
+    "model_name_or_path": "openai/gpt-5-mini-2025-08-07",
+    "instance_id": "django__django-12193",
+    "model_patch": "diff --git a/django/contrib/postgres/forms/array.py b/django/contrib/postgres/forms/array.py\nindex 2e19cd574a..2efa48b493 100644\n--- a/django/contrib/postgres/forms/array.py\n+++ b/django/contrib/postgres/forms/array.py\n@@ -144,10 +144,16 @@ class SplitArrayWidget(forms.Widget):\n                 widget_value = value[i]\n             except IndexError:\n                 widget_value = None\n+            # Ensure each subwidget gets a fresh attrs dict. Some widgets\n+            # (e.g. CheckboxInput) mutate the attrs dict passed into\n+            # get_context() which could leak state (like 'checked') to\n+            # subsequent widgets. Make a shallow copy and set the id for\n+            # this subwidget.\n+            sub_attrs = {**final_attrs}\n             if id_:\n-                final_attrs = {**final_attrs, 'id': '%s_%s' % (id_, i)}\n+                sub_attrs['id'] = '%s_%s' % (id_, i)\n             context['widget']['subwidgets'].append(\n-                self.widget.get_context(name + '_%s' % i, widget_value, final_attrs)['widget']\n+                self.widget.get_context(name + '_%s' % i, widget_value, sub_attrs)['widget']\n             )\n         return context\n \n"
+  }
+}

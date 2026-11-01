@@ -1,0 +1,7 @@
+2026-11-01 16:47:18,146 - minisweagent - INFO - Loading dataset SWE-bench/SWE-bench_Verified, split test...
+2026-11-01 16:47:21,882 - minisweagent - INFO - Instance filter: 500 -> 1 instances
+2026-11-01 16:47:21,884 - minisweagent - INFO - Running on 1 instances...
+2026-11-01 16:47:21,885 - minisweagent - INFO - Building agent config from specs: ['/Users/pinhomemacbook4/job/smartm2m/swe-agent/.venv/lib/python3.11/site-packages/minisweagent/config/benchmarks/swebench.yaml', 'model.model_kwargs.service_tier=flex']
+2026-11-01 16:47:23,482 - minisweagent.environment - DEBUG - Starting container with command: /Users/pinhomemacbook4/.docker/bin/docker run -d --name minisweagent-96a4636d -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-10323:latest sleep 2h
+2026-11-01 16:47:23,689 - minisweagent.environment - INFO - Started container minisweagent-96a4636d with ID a02e798d60bac50ba8b88a1f00f3419204789dc30e860a1b48d2d727350b7d60
+2026-11-01 16:48:08,982 - minisweagent - INFO - Saved trajectory to '/Users/pinhomemacbook4/job/smartm2m/swe-agent/results/A/run_3/sphinx-doc__sphinx-10323/sphinx-doc__sphinx-10323/sphinx-doc__sphinx-10323.traj.json'

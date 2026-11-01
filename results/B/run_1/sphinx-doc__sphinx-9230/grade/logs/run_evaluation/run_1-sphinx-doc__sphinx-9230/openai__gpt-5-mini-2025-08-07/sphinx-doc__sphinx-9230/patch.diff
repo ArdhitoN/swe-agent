@@ -1,0 +1,26 @@
+diff --git a/sphinx/ext/napoleon/docstring.py b/sphinx/ext/napoleon/docstring.py
+index d8cb75a5f..0150b70eb 100644
+--- a/sphinx/ext/napoleon/docstring.py
++++ b/sphinx/ext/napoleon/docstring.py
+@@ -266,8 +266,19 @@ class GoogleDocstring:
+         if parse_type:
+             match = _google_typed_arg_regex.match(before)
+             if match:
+-                _name = match.group(1).strip()
+-                _type = match.group(2)
++                # Support both "name(type)" and "type name" styles. If there
++                # is leftover text after the matched parenthesized part, treat
++                # that leftover as the parameter name and the matched part as
++                # the type. Example: "dict(str, str) opc_meta" ->
++                # type "dict(str, str)", name "opc_meta".
++                end = match.end()
++                leftover = before[end:].strip()
++                if leftover:
++                    _type = before[:end].strip()
++                    _name = leftover
++                else:
++                    _name = match.group(1).strip()
++                    _type = match.group(2)
+ 
+         _name = self._escape_args_and_kwargs(_name)
+ 

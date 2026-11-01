@@ -1,0 +1,16 @@
+diff --git a/sphinx/util/inspect.py b/sphinx/util/inspect.py
+index 15f0d66e2..2cefb2f87 100644
+--- a/sphinx/util/inspect.py
++++ b/sphinx/util/inspect.py
+@@ -88,6 +88,11 @@ def getargspec(func: Callable) -> Any:
+ 
+         if kind is Parameter.POSITIONAL_ONLY:
+             args.append(name)
++            # positional-only parameters may have defaults (Python 3.8+).
++            # Record them so that the resulting FullArgSpec.defaults tuple
++            # properly corresponds to the last n positional arguments.
++            if param.default is not param.empty:
++                defaults += (param.default,)  # type: ignore
+         elif kind is Parameter.POSITIONAL_OR_KEYWORD:
+             args.append(name)
+             if param.default is not param.empty:

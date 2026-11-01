@@ -1,0 +1,30 @@
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/Users/pinhomemacbook4/Library/Application 
+Support/mini-swe-agent/.env'
+minisweagent: INFO: Results will be saved to                                    
+/Users/pinhomemacbook4/job/smartm2m/swe-agent/results/A/run_5/sphinx-doc__sphinx
+-9367                                                                           
+Logging to '/Users/pinhomemacbook4/job/smartm2m/swe-agent/results/A/run_5/sphinx-doc__sphinx-9367/minisweagent.log'
+minisweagent: INFO: Loading dataset SWE-bench/SWE-bench_Verified, split test... 
+minisweagent: INFO: Instance filter: 500 -> 1 instances                         
+minisweagent: INFO: Running on 1 instances...                                   
+minisweagent: INFO: Building agent config from specs:                           
+['/Users/pinhomemacbook4/job/smartm2m/swe-agent/.venv/lib/python3.11/site-packag
+es/minisweagent/config/benchmarks/swebench.yaml',                               
+'model.model_kwargs.service_tier=flex']                                         
+minisweagent.environment: DEBUG: Starting container with command:               
+/Users/pinhomemacbook4/.docker/bin/docker run -d --name minisweagent-9478299c -w
+/testbed --rm                                                                   
+docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-9367:latest sleep 2h 
+minisweagent.environment: INFO: Started container minisweagent-9478299c with ID 
+16bf3bbd96f15898ec51408285bc8bd4f177475113b52df890eea09392ea5b9c                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/pinhomemacbook4/job/smartm2m/swe-agent/results/A/run_5/sphinx-doc__sphin
+x-9367/sphinx-doc__sphinx-9367/sphinx-doc__sphinx-9367.traj.json'               
+  Overall Progress ($0.00) ━━━━━━━━━━━━━━━━━━━━━━━ 1/1 100% 0:00:37 eta: 0:00:00
+┏━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Exit Status ┃ Count ┃ Most recent instances                                  ┃
+┡━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ Submitted   │     1 │ sphinx-doc__sphinx-9367                                │
+└─────────────┴───────┴────────────────────────────────────────────────────────┘

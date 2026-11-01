@@ -1,0 +1,26 @@
+diff --git a/sphinx/ext/napoleon/docstring.py b/sphinx/ext/napoleon/docstring.py
+index b3daa06f1..f7ddd2c7b 100644
+--- a/sphinx/ext/napoleon/docstring.py
++++ b/sphinx/ext/napoleon/docstring.py
+@@ -272,8 +272,19 @@ class GoogleDocstring:
+         fields = []
+         while not self._is_section_break():
+             _name, _type, _desc = self._consume_field(parse_type, prefer_type)
+-            if _name or _type or _desc:
+-                fields.append((_name, _type, _desc,))
++            # Support grouping multiple parameter names on one line like
++            # "x1, x2 : array_like" by splitting the name on commas and
++            # creating separate field entries for each name. This ensures
++            # Sphinx renders each parameter's :param and :type correctly,
++            # and allows modifiers like "optional" to be associated with
++            # each parameter individually.
++            if _name and ',' in _name:
++                for name in (_n.strip() for _n in _name.split(',')):
++                    if name or _type or _desc:
++                        fields.append((name, _type, _desc,))
++            else:
++                if _name or _type or _desc:
++                    fields.append((_name, _type, _desc,))
+         return fields
+ 
+     def _consume_inline_attribute(self) -> Tuple[str, List[str]]:

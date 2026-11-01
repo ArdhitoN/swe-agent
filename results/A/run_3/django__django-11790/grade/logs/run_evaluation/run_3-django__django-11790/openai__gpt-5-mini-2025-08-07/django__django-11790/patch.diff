@@ -1,0 +1,20 @@
+diff --git a/django/contrib/auth/forms.py b/django/contrib/auth/forms.py
+index a0cfed0995..71c89e164a 100644
+--- a/django/contrib/auth/forms.py
++++ b/django/contrib/auth/forms.py
+@@ -191,7 +191,14 @@ class AuthenticationForm(forms.Form):
+ 
+         # Set the max length and label for the "username" field.
+         self.username_field = UserModel._meta.get_field(UserModel.USERNAME_FIELD)
+-        self.fields['username'].max_length = self.username_field.max_length or 254
++        # Set max_length on the form field so validators are in place.
++        max_length = self.username_field.max_length or 254
++        self.fields['username'].max_length = max_length
++        # Ensure the widget's HTML attributes reflect the max length
++        # (CharField.widget_attrs only runs during Field initialization,
++        # so update the widget attrs here when max_length is modified).
++        if not self.fields['username'].widget.is_hidden:
++            self.fields['username'].widget.attrs['maxlength'] = str(max_length)
+         if self.fields['username'].label is None:
+             self.fields['username'].label = capfirst(self.username_field.verbose_name)
+ 

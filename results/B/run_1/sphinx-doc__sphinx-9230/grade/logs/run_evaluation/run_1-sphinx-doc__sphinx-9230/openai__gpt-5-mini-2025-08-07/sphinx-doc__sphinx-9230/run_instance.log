@@ -1,0 +1,70 @@
+2026-11-01 16:54:54,209 - INFO - Creating container for sphinx-doc__sphinx-9230...
+2026-11-01 16:54:54,256 - INFO - Container for sphinx-doc__sphinx-9230 created: e4a7ae8b6f4af42d1b871f3c901b17e6b610afa9bcb2d627aa15ea61c0681276
+2026-11-01 16:54:54,397 - INFO - Container for sphinx-doc__sphinx-9230 started: e4a7ae8b6f4af42d1b871f3c901b17e6b610afa9bcb2d627aa15ea61c0681276
+2026-11-01 16:54:54,397 - INFO - Intermediate patch for sphinx-doc__sphinx-9230 written to logs/run_evaluation/run_1-sphinx-doc__sphinx-9230/openai__gpt-5-mini-2025-08-07/sphinx-doc__sphinx-9230/patch.diff, now applying to container...
+2026-11-01 16:54:54,539 - INFO - >>>>> Applied Patch:
+Checking patch sphinx/ext/napoleon/docstring.py...
+Applied patch sphinx/ext/napoleon/docstring.py cleanly.
+
+2026-11-01 16:54:54,807 - INFO - Git diff before:
+diff --git a/sphinx/ext/napoleon/docstring.py b/sphinx/ext/napoleon/docstring.py
+index d8cb75a5f..0150b70eb 100644
+--- a/sphinx/ext/napoleon/docstring.py
++++ b/sphinx/ext/napoleon/docstring.py
+@@ -266,8 +266,19 @@ class GoogleDocstring:
+         if parse_type:
+             match = _google_typed_arg_regex.match(before)
+             if match:
+-                _name = match.group(1).strip()
+-                _type = match.group(2)
++                # Support both "name(type)" and "type name" styles. If there
++                # is leftover text after the matched parenthesized part, treat
++                # that leftover as the parameter name and the matched part as
++                # the type. Example: "dict(str, str) opc_meta" ->
++                # type "dict(str, str)", name "opc_meta".
++                end = match.end()
++                leftover = before[end:].strip()
++                if leftover:
++                    _type = before[:end].strip()
++                    _name = leftover
++                else:
++                    _name = match.group(1).strip()
++                    _type = match.group(2)
+ 
+         _name = self._escape_args_and_kwargs(_name)
+2026-11-01 16:54:54,807 - INFO - Eval script for sphinx-doc__sphinx-9230 written to logs/run_evaluation/run_1-sphinx-doc__sphinx-9230/openai__gpt-5-mini-2025-08-07/sphinx-doc__sphinx-9230/eval.sh; copying to container...
+2026-11-01 16:55:01,482 - INFO - Test runtime: 6.63 seconds
+2026-11-01 16:55:01,484 - INFO - Test output for sphinx-doc__sphinx-9230 written to logs/run_evaluation/run_1-sphinx-doc__sphinx-9230/openai__gpt-5-mini-2025-08-07/sphinx-doc__sphinx-9230/test_output.txt
+2026-11-01 16:55:01,572 - INFO - Git diff after:
+diff --git a/sphinx/ext/napoleon/docstring.py b/sphinx/ext/napoleon/docstring.py
+index d8cb75a5f..0150b70eb 100644
+--- a/sphinx/ext/napoleon/docstring.py
++++ b/sphinx/ext/napoleon/docstring.py
+@@ -266,8 +266,19 @@ class GoogleDocstring:
+         if parse_type:
+             match = _google_typed_arg_regex.match(before)
+             if match:
+-                _name = match.group(1).strip()
+-                _type = match.group(2)
++                # Support both "name(type)" and "type name" styles. If there
++                # is leftover text after the matched parenthesized part, treat
++                # that leftover as the parameter name and the matched part as
++                # the type. Example: "dict(str, str) opc_meta" ->
++                # type "dict(str, str)", name "opc_meta".
++                end = match.end()
++                leftover = before[end:].strip()
++                if leftover:
++                    _type = before[:end].strip()
++                    _name = leftover
++                else:
++                    _name = match.group(1).strip()
++                    _type = match.group(2)
+ 
+         _name = self._escape_args_and_kwargs(_name)
+2026-11-01 16:55:01,573 - INFO - Grading answer for sphinx-doc__sphinx-9230...
+2026-11-01 16:55:01,578 - INFO - report: {'sphinx-doc__sphinx-9230': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'infra_failure': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['tests/test_domain_py.py::test_info_field_list']}, 'PASS_TO_PASS': {'success': ['tests/test_domain_py.py::test_function_signatures', 'tests/test_domain_py.py::test_domain_py_xrefs', 'tests/test_domain_py.py::test_domain_py_xrefs_abbreviations', 'tests/test_domain_py.py::test_domain_py_objects', 'tests/test_domain_py.py::test_resolve_xref_for_properties', 'tests/test_domain_py.py::test_domain_py_find_obj', 'tests/test_domain_py.py::test_domain_py_canonical', 'tests/test_domain_py.py::test_get_full_qualified_name', 'tests/test_domain_py.py::test_parse_annotation', 'tests/test_domain_py.py::test_pyfunction_signature', 'tests/test_domain_py.py::test_pyfunction_signature_full', 'tests/test_domain_py.py::test_pyfunction_signature_full_py38', 'tests/test_domain_py.py::test_pyfunction_with_number_literals', 'tests/test_domain_py.py::test_pyfunction_with_union_type_operator', 'tests/test_domain_py.py::test_optional_pyfunction_signature', 'tests/test_domain_py.py::test_pyexception_signature', 'tests/test_domain_py.py::test_exceptions_module_is_ignored', 'tests/test_domain_py.py::test_pydata_signature', 'tests/test_domain_py.py::test_pydata_signature_old', 'tests/test_domain_py.py::test_pydata_with_union_type_operator', 'tests/test_domain_py.py::test_pyobject_prefix', 'tests/test_domain_py.py::test_pydata', 'tests/test_domain_py.py::test_pyfunction', 'tests/test_domain_py.py::test_pyclass_options', 'tests/test_domain_py.py::test_pymethod_options', 'tests/test_domain_py.py::test_pyclassmethod', 'tests/test_domain_py.py::test_pystaticmethod', 'tests/test_domain_py.py::test_pyattribute', 'tests/test_domain_py.py::test_pyproperty', 'tests/test_domain_py.py::test_pydecorator_signature', 'tests/test_domain_py.py::test_pydecoratormethod_signature', 'tests/test_domain_py.py::test_canonical', 'tests/test_domain_py.py::test_canonical_definition_overrides', 'tests/test_domain_py.py::test_canonical_definition_skip', 'tests/test_domain_py.py::test_canonical_duplicated', 'tests/test_domain_py.py::test_info_field_list_var', 'tests/test_domain_py.py::test_module_index', 'tests/test_domain_py.py::test_module_index_submodule', 'tests/test_domain_py.py::test_module_index_not_collapsed', 'tests/test_domain_py.py::test_modindex_common_prefix', 'tests/test_domain_py.py::test_noindexentry', 'tests/test_domain_py.py::test_python_python_use_unqualified_type_names', 'tests/test_domain_py.py::test_python_python_use_unqualified_type_names_disabled', 'tests/test_domain_py.py::test_warn_missing_reference'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sphinx-doc__sphinx-9230: resolved: False
+2026-11-01 16:55:01,578 - INFO - Attempting to stop container sweb.eval.sphinx-doc__sphinx-9230.run_1-sphinx-doc__sphinx-9230...
+2026-11-01 16:55:16,763 - INFO - Container sweb.eval.sphinx-doc__sphinx-9230.run_1-sphinx-doc__sphinx-9230 stopped successfully.
+2026-11-01 16:55:16,764 - INFO - Attempting to remove container sweb.eval.sphinx-doc__sphinx-9230.run_1-sphinx-doc__sphinx-9230...
+2026-11-01 16:55:16,808 - INFO - Container sweb.eval.sphinx-doc__sphinx-9230.run_1-sphinx-doc__sphinx-9230 removed successfully.

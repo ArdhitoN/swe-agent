@@ -1,0 +1,142 @@
+2026-11-01 16:22:32,057 - INFO - Creating container for django__django-11885...
+2026-11-01 16:22:32,133 - INFO - Container for django__django-11885 created: cfed4add0b3d4243536a30ba5503e94e7f332c72541a720008bd664c9d356ccb
+2026-11-01 16:22:32,252 - INFO - Container for django__django-11885 started: cfed4add0b3d4243536a30ba5503e94e7f332c72541a720008bd664c9d356ccb
+2026-11-01 16:22:32,253 - INFO - Intermediate patch for django__django-11885 written to logs/run_evaluation/run_1-django__django-11885/openai__gpt-5-mini-2025-08-07/django__django-11885/patch.diff, now applying to container...
+2026-11-01 16:22:32,378 - INFO - >>>>> Applied Patch:
+Checking patch django/db/models/deletion.py...
+Applied patch django/db/models/deletion.py cleanly.
+
+2026-11-01 16:22:33,491 - INFO - Git diff before:
+diff --git a/django/db/models/deletion.py b/django/db/models/deletion.py
+index ae82d26340..1277ec41e7 100644
+--- a/django/db/models/deletion.py
++++ b/django/db/models/deletion.py
+@@ -310,9 +310,54 @@ class Collector:
+                     )
+ 
+             # fast deletes
++            # Combine fast delete QuerySets by model to reduce database roundtrips.
++            from collections import defaultdict
++            grouped = defaultdict(list)
+             for qs in self.fast_deletes:
+-                count = qs._raw_delete(using=self.using)
+-                deleted_counter[qs.model._meta.label] += count
++                grouped[qs.model].append(qs)
++            for model, qss in grouped.items():
++                if len(qss) == 1:
++                    count = qss[0]._raw_delete(using=self.using)
++                    deleted_counter[model._meta.label] += count
++                else:
++                    # Only combine QuerySets that operate on a single table
++                    # (no joins). Otherwise fall back to individual fast deletes
++                    # to avoid alias/semantics issues.
++                    # Only combine QuerySets that operate on a single table
++                    # (no joins) and have simple where clauses (single child
++                    # lookups with small RHS). Otherwise fall back to individual
++                    # fast deletes to avoid alias/semantics and parameter limit issues.
++                    def simple_where(qs):
++                        where = getattr(qs.query, 'where', None)
++                        if not where:
++                            return False
++                        # only single child
++                        if len(where.children) != 1:
++                            return False
++                        child = where.children[0]
++                        # If the child has an rhs that's a large iterable, avoid combining
++                        rhs = getattr(child, 'rhs', None)
++                        if isinstance(rhs, (list, tuple)):
++                            from django.db.models.sql.constants import GET_ITERATOR_CHUNK_SIZE
++                            if len(rhs) > GET_ITERATOR_CHUNK_SIZE:
++                                return False
++                        return True
++
++                    if all(getattr(qs.query, 'count_active_tables', lambda: 1)() == 1 and simple_where(qs) for qs in qss):
++                        base_qs = qss[0]._chain()
++                        where_cls = base_qs.query.where.__class__
++                        combined_where = where_cls(connector=sql.where.OR)
++                        for qs in qss:
++                            # Only add non-empty where nodes
++                            if qs.query.where:
++                                combined_where.add(qs.query.where, sql.where.OR)
++                        base_qs.query.where = combined_where
++                        count = base_qs._raw_delete(using=self.using)
++                        deleted_counter[model._meta.label] += count
++                    else:
++                        for qs in qss:
++                            count = qs._raw_delete(using=self.using)
++                            deleted_counter[model._meta.label] += count
+ 
+             # update fields
+             for model, instances_for_fieldvalues in self.field_updates.items():
+2026-11-01 16:22:33,492 - INFO - Eval script for django__django-11885 written to logs/run_evaluation/run_1-django__django-11885/openai__gpt-5-mini-2025-08-07/django__django-11885/eval.sh; copying to container...
+2026-11-01 16:22:48,218 - INFO - Test runtime: 14.65 seconds
+2026-11-01 16:22:48,221 - INFO - Test output for django__django-11885 written to logs/run_evaluation/run_1-django__django-11885/openai__gpt-5-mini-2025-08-07/django__django-11885/test_output.txt
+2026-11-01 16:22:48,324 - INFO - Git diff after:
+diff --git a/django/db/models/deletion.py b/django/db/models/deletion.py
+index ae82d26340..1277ec41e7 100644
+--- a/django/db/models/deletion.py
++++ b/django/db/models/deletion.py
+@@ -310,9 +310,54 @@ class Collector:
+                     )
+ 
+             # fast deletes
++            # Combine fast delete QuerySets by model to reduce database roundtrips.
++            from collections import defaultdict
++            grouped = defaultdict(list)
+             for qs in self.fast_deletes:
+-                count = qs._raw_delete(using=self.using)
+-                deleted_counter[qs.model._meta.label] += count
++                grouped[qs.model].append(qs)
++            for model, qss in grouped.items():
++                if len(qss) == 1:
++                    count = qss[0]._raw_delete(using=self.using)
++                    deleted_counter[model._meta.label] += count
++                else:
++                    # Only combine QuerySets that operate on a single table
++                    # (no joins). Otherwise fall back to individual fast deletes
++                    # to avoid alias/semantics issues.
++                    # Only combine QuerySets that operate on a single table
++                    # (no joins) and have simple where clauses (single child
++                    # lookups with small RHS). Otherwise fall back to individual
++                    # fast deletes to avoid alias/semantics and parameter limit issues.
++                    def simple_where(qs):
++                        where = getattr(qs.query, 'where', None)
++                        if not where:
++                            return False
++                        # only single child
++                        if len(where.children) != 1:
++                            return False
++                        child = where.children[0]
++                        # If the child has an rhs that's a large iterable, avoid combining
++                        rhs = getattr(child, 'rhs', None)
++                        if isinstance(rhs, (list, tuple)):
++                            from django.db.models.sql.constants import GET_ITERATOR_CHUNK_SIZE
++                            if len(rhs) > GET_ITERATOR_CHUNK_SIZE:
++                                return False
++                        return True
++
++                    if all(getattr(qs.query, 'count_active_tables', lambda: 1)() == 1 and simple_where(qs) for qs in qss):
++                        base_qs = qss[0]._chain()
++                        where_cls = base_qs.query.where.__class__
++                        combined_where = where_cls(connector=sql.where.OR)
++                        for qs in qss:
++                            # Only add non-empty where nodes
++                            if qs.query.where:
++                                combined_where.add(qs.query.where, sql.where.OR)
++                        base_qs.query.where = combined_where
++                        count = base_qs._raw_delete(using=self.using)
++                        deleted_counter[model._meta.label] += count
++                    else:
++                        for qs in qss:
++                            count = qs._raw_delete(using=self.using)
++                            deleted_counter[model._meta.label] += count
+ 
+             # update fields
+             for model, instances_for_fieldvalues in self.field_updates.items():
+2026-11-01 16:22:48,324 - INFO - Grading answer for django__django-11885...
+2026-11-01 16:22:48,326 - INFO - report: {'django__django-11885': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'infra_failure': False, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_fast_delete_combined_relationships (delete.tests.FastDeleteTests)'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_fast_delete_empty_no_update_can_self_select (delete.tests.FastDeleteTests)', 'test_fast_delete_fk (delete.tests.FastDeleteTests)', 'test_fast_delete_inheritance (delete.tests.FastDeleteTests)', 'test_fast_delete_instance_set_pk_none (delete.tests.FastDeleteTests)', 'test_fast_delete_joined_qs (delete.tests.FastDeleteTests)', 'test_fast_delete_large_batch (delete.tests.FastDeleteTests)', 'test_fast_delete_m2m (delete.tests.FastDeleteTests)', 'test_fast_delete_qs (delete.tests.FastDeleteTests)', 'test_fast_delete_revm2m (delete.tests.FastDeleteTests)', 'test_auto (delete.tests.OnDeleteTests)', 'test_auto_nullable (delete.tests.OnDeleteTests)', 'test_cascade (delete.tests.OnDeleteTests)', 'test_cascade_from_child (delete.tests.OnDeleteTests)', 'test_cascade_from_parent (delete.tests.OnDeleteTests)', 'test_cascade_nullable (delete.tests.OnDeleteTests)', 'test_do_nothing (delete.tests.OnDeleteTests)', 'test_do_nothing_qscount (delete.tests.OnDeleteTests)', 'test_inheritance_cascade_down (delete.tests.OnDeleteTests)', 'test_inheritance_cascade_up (delete.tests.OnDeleteTests)', 'test_non_callable (delete.tests.OnDeleteTests)', 'test_o2o_setnull (delete.tests.OnDeleteTests)', 'test_protect (delete.tests.OnDeleteTests)', 'test_setdefault (delete.tests.OnDeleteTests)', 'test_setdefault_none (delete.tests.OnDeleteTests)', 'test_setnull (delete.tests.OnDeleteTests)', 'test_setnull_from_child (delete.tests.OnDeleteTests)', 'test_setnull_from_parent (delete.tests.OnDeleteTests)', 'test_setvalue (delete.tests.OnDeleteTests)', 'test_bulk (delete.tests.DeletionTests)', 'test_can_defer_constraint_checks (delete.tests.DeletionTests)', 'test_delete_with_keeping_parents (delete.tests.DeletionTests)', 'test_delete_with_keeping_parents_relationships (delete.tests.DeletionTests)', 'test_deletion_order (delete.tests.DeletionTests)', 'test_hidden_related (delete.tests.DeletionTests)', 'test_instance_update (delete.tests.DeletionTests)', 'test_large_delete (delete.tests.DeletionTests)', 'test_large_delete_related (delete.tests.DeletionTests)', 'test_m2m (delete.tests.DeletionTests)', 'test_model_delete_returns_num_rows (delete.tests.DeletionTests)', 'test_only_referenced_fields_selected (delete.tests.DeletionTests)', 'test_proxied_model_duplicate_queries (delete.tests.DeletionTests)', 'test_queryset_delete_returns_num_rows (delete.tests.DeletionTests)', 'test_relational_post_delete_signals_happen_before_parent_object (delete.tests.DeletionTests)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-11885: resolved: True
+2026-11-01 16:22:48,327 - INFO - Attempting to stop container sweb.eval.django__django-11885.run_1-django__django-11885...
+2026-11-01 16:23:03,480 - INFO - Container sweb.eval.django__django-11885.run_1-django__django-11885 stopped successfully.
+2026-11-01 16:23:03,481 - INFO - Attempting to remove container sweb.eval.django__django-11885.run_1-django__django-11885...
+2026-11-01 16:23:03,542 - INFO - Container sweb.eval.django__django-11885.run_1-django__django-11885 removed successfully.

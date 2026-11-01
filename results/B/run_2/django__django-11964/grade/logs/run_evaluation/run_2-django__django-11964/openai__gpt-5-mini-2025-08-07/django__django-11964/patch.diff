@@ -1,0 +1,21 @@
+diff --git a/django/db/models/enums.py b/django/db/models/enums.py
+index bbe362a6ab..308c820353 100755
+--- a/django/db/models/enums.py
++++ b/django/db/models/enums.py
+@@ -60,7 +60,15 @@ class ChoicesMeta(enum.EnumMeta):
+ 
+ class Choices(enum.Enum, metaclass=ChoicesMeta):
+     """Class for creating enumerated choices."""
+-    pass
++
++    def __str__(self):
++        """Return the underlying value as the string representation.
++
++        This is useful for TextChoices/IntegerChoices so that str(member)
++        yields the actual value (e.g. 'first' or '1') instead of
++        'ClassName.MEMBER'.
++        """
++        return str(self.value)
+ 
+ 
+ class IntegerChoices(int, Choices):

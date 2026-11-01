@@ -1,0 +1,86 @@
+2026-11-01 16:33:14,888 - INFO - Creating container for django__django-12193...
+2026-11-01 16:33:14,920 - INFO - Container for django__django-12193 created: ef28a8218695bb8e9f941a10cb1d1d800e1da65346573a385269892bd2d17942
+2026-11-01 16:33:14,992 - INFO - Container for django__django-12193 started: ef28a8218695bb8e9f941a10cb1d1d800e1da65346573a385269892bd2d17942
+2026-11-01 16:33:14,994 - INFO - Intermediate patch for django__django-12193 written to logs/run_evaluation/run_5-django__django-12193/openai__gpt-5-mini-2025-08-07/django__django-12193/patch.diff, now applying to container...
+2026-11-01 16:33:15,122 - INFO - >>>>> Applied Patch:
+Checking patch django/contrib/postgres/forms/array.py...
+Applied patch django/contrib/postgres/forms/array.py cleanly.
+
+2026-11-01 16:33:15,745 - INFO - Git diff before:
+diff --git a/django/contrib/postgres/forms/array.py b/django/contrib/postgres/forms/array.py
+index 2e19cd574a..bdfd3000d9 100644
+--- a/django/contrib/postgres/forms/array.py
++++ b/django/contrib/postgres/forms/array.py
+@@ -137,17 +137,25 @@ class SplitArrayWidget(forms.Widget):
+             self.widget.is_localized = self.is_localized
+         value = value or []
+         context['widget']['subwidgets'] = []
+-        final_attrs = self.build_attrs(attrs)
+-        id_ = final_attrs.get('id')
++        base_final_attrs = self.build_attrs(attrs)
++        id_ = base_final_attrs.get('id')
+         for i in range(max(len(value), self.size)):
+             try:
+                 widget_value = value[i]
+             except IndexError:
+                 widget_value = None
++            # Ensure a fresh attrs dict is passed to each subwidget. Some
++            # widgets (e.g. CheckboxInput) may mutate the attrs dict passed
++            # into get_context(), so reusing the same dict across iterations
++            # would leak attributes (like 'checked') from one widget to the
++            # next. Create a shallow copy of the base attrs and set the
++            # per-widget id if present.
+             if id_:
+-                final_attrs = {**final_attrs, 'id': '%s_%s' % (id_, i)}
++                iteration_attrs = {**base_final_attrs, 'id': '%s_%s' % (id_, i)}
++            else:
++                iteration_attrs = dict(base_final_attrs)
+             context['widget']['subwidgets'].append(
+-                self.widget.get_context(name + '_%s' % i, widget_value, final_attrs)['widget']
++                self.widget.get_context(name + '_%s' % i, widget_value, iteration_attrs)['widget']
+             )
+         return context
+2026-11-01 16:33:15,746 - INFO - Eval script for django__django-12193 written to logs/run_evaluation/run_5-django__django-12193/openai__gpt-5-mini-2025-08-07/django__django-12193/eval.sh; copying to container...
+2026-11-01 16:33:29,066 - INFO - Test runtime: 13.27 seconds
+2026-11-01 16:33:29,069 - INFO - Test output for django__django-12193 written to logs/run_evaluation/run_5-django__django-12193/openai__gpt-5-mini-2025-08-07/django__django-12193/test_output.txt
+2026-11-01 16:33:29,180 - INFO - Git diff after:
+diff --git a/django/contrib/postgres/forms/array.py b/django/contrib/postgres/forms/array.py
+index 2e19cd574a..bdfd3000d9 100644
+--- a/django/contrib/postgres/forms/array.py
++++ b/django/contrib/postgres/forms/array.py
+@@ -137,17 +137,25 @@ class SplitArrayWidget(forms.Widget):
+             self.widget.is_localized = self.is_localized
+         value = value or []
+         context['widget']['subwidgets'] = []
+-        final_attrs = self.build_attrs(attrs)
+-        id_ = final_attrs.get('id')
++        base_final_attrs = self.build_attrs(attrs)
++        id_ = base_final_attrs.get('id')
+         for i in range(max(len(value), self.size)):
+             try:
+                 widget_value = value[i]
+             except IndexError:
+                 widget_value = None
++            # Ensure a fresh attrs dict is passed to each subwidget. Some
++            # widgets (e.g. CheckboxInput) may mutate the attrs dict passed
++            # into get_context(), so reusing the same dict across iterations
++            # would leak attributes (like 'checked') from one widget to the
++            # next. Create a shallow copy of the base attrs and set the
++            # per-widget id if present.
+             if id_:
+-                final_attrs = {**final_attrs, 'id': '%s_%s' % (id_, i)}
++                iteration_attrs = {**base_final_attrs, 'id': '%s_%s' % (id_, i)}
++            else:
++                iteration_attrs = dict(base_final_attrs)
+             context['widget']['subwidgets'].append(
+-                self.widget.get_context(name + '_%s' % i, widget_value, final_attrs)['widget']
++                self.widget.get_context(name + '_%s' % i, widget_value, iteration_attrs)['widget']
+             )
+         return context
+2026-11-01 16:33:29,180 - INFO - Grading answer for django__django-12193...
+2026-11-01 16:33:29,182 - INFO - report: {'django__django-12193': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'infra_failure': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_get_context_does_not_mutate_attrs (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)']}, 'PASS_TO_PASS': {'success': ['test_render_check_exception (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_check_test (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_empty (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_false (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_int (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_none (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_true (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_value (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_value_from_datadict (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_value_from_datadict_string_int (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_value_omitted_from_data (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-12193: resolved: False
+2026-11-01 16:33:29,182 - INFO - Attempting to stop container sweb.eval.django__django-12193.run_5-django__django-12193...
+2026-11-01 16:33:44,338 - INFO - Container sweb.eval.django__django-12193.run_5-django__django-12193 stopped successfully.
+2026-11-01 16:33:44,339 - INFO - Attempting to remove container sweb.eval.django__django-12193.run_5-django__django-12193...
+2026-11-01 16:33:44,375 - INFO - Container sweb.eval.django__django-12193.run_5-django__django-12193 removed successfully.

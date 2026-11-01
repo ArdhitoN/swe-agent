@@ -1,0 +1,21 @@
+diff --git a/django/db/migrations/serializer.py b/django/db/migrations/serializer.py
+index 27b5cbd379..e5ace43f86 100755
+--- a/django/db/migrations/serializer.py
++++ b/django/db/migrations/serializer.py
+@@ -120,9 +120,13 @@ class EnumSerializer(BaseSerializer):
+     def serialize(self):
+         enum_class = self.value.__class__
+         module = enum_class.__module__
+-        v_string, v_imports = serializer_factory(self.value.value).serialize()
+-        imports = {'import %s' % module, *v_imports}
+-        return "%s.%s(%s)" % (module, enum_class.__name__, v_string), imports
++        # Serialize by enum member name so translations of the member value
++        # (e.g. gettext_lazy) don't break historical migration files.
++        name_string, name_imports = serializer_factory(self.value.name).serialize()
++        imports = {'import %s' % module, *name_imports}
++        # Use item access by name (e.g. MyEnum['NAME']) which is stable across
++        # translations and different member values.
++        return "%s.%s[%s]" % (module, enum_class.__name__, name_string), imports
+ 
+ 
+ class FloatSerializer(BaseSimpleSerializer):

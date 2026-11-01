@@ -1,0 +1,48 @@
+2026-11-01 17:17:30,231 - INFO - Creating container for sphinx-doc__sphinx-9367...
+2026-11-01 17:17:30,287 - INFO - Container for sphinx-doc__sphinx-9367 created: c1c7e1e0b4eb4aa2b9b6859baad5f8e92ca1a2976483ae8ead4eab333d1b4818
+2026-11-01 17:17:30,413 - INFO - Container for sphinx-doc__sphinx-9367 started: c1c7e1e0b4eb4aa2b9b6859baad5f8e92ca1a2976483ae8ead4eab333d1b4818
+2026-11-01 17:17:30,414 - INFO - Intermediate patch for sphinx-doc__sphinx-9367 written to logs/run_evaluation/run_4-sphinx-doc__sphinx-9367/openai__gpt-5-mini-2025-08-07/sphinx-doc__sphinx-9367/patch.diff, now applying to container...
+2026-11-01 17:17:30,555 - INFO - >>>>> Applied Patch:
+Checking patch sphinx/pycode/ast.py...
+Applied patch sphinx/pycode/ast.py cleanly.
+
+2026-11-01 17:17:30,888 - INFO - Git diff before:
+diff --git a/sphinx/pycode/ast.py b/sphinx/pycode/ast.py
+index f541ec0a9..96d7dfcb7 100644
+--- a/sphinx/pycode/ast.py
++++ b/sphinx/pycode/ast.py
+@@ -214,6 +214,9 @@ class _UnparseVisitor(ast.NodeVisitor):
+ 
+     def visit_Tuple(self, node: ast.Tuple) -> str:
+         if node.elts:
++            # A single-element tuple must keep the trailing comma: (1,) not (1)
++            if len(node.elts) == 1:
++                return "(%s,)" % self.visit(node.elts[0])
+             return "(" + ", ".join(self.visit(e) for e in node.elts) + ")"
+         else:
+             return "()"
+2026-11-01 17:17:30,888 - INFO - Eval script for sphinx-doc__sphinx-9367 written to logs/run_evaluation/run_4-sphinx-doc__sphinx-9367/openai__gpt-5-mini-2025-08-07/sphinx-doc__sphinx-9367/eval.sh; copying to container...
+2026-11-01 17:17:36,854 - INFO - Test runtime: 5.92 seconds
+2026-11-01 17:17:36,856 - INFO - Test output for sphinx-doc__sphinx-9367 written to logs/run_evaluation/run_4-sphinx-doc__sphinx-9367/openai__gpt-5-mini-2025-08-07/sphinx-doc__sphinx-9367/test_output.txt
+2026-11-01 17:17:37,035 - INFO - Git diff after:
+diff --git a/sphinx/pycode/ast.py b/sphinx/pycode/ast.py
+index f541ec0a9..96d7dfcb7 100644
+--- a/sphinx/pycode/ast.py
++++ b/sphinx/pycode/ast.py
+@@ -214,6 +214,9 @@ class _UnparseVisitor(ast.NodeVisitor):
+ 
+     def visit_Tuple(self, node: ast.Tuple) -> str:
+         if node.elts:
++            # A single-element tuple must keep the trailing comma: (1,) not (1)
++            if len(node.elts) == 1:
++                return "(%s,)" % self.visit(node.elts[0])
+             return "(" + ", ".join(self.visit(e) for e in node.elts) + ")"
+         else:
+             return "()"
+2026-11-01 17:17:37,035 - INFO - Grading answer for sphinx-doc__sphinx-9367...
+2026-11-01 17:17:37,036 - INFO - report: {'sphinx-doc__sphinx-9367': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'infra_failure': False, 'tests_status': {'FAIL_TO_PASS': {'success': ['tests/test_pycode_ast.py::test_unparse[(1,)-(1,)]'], 'failure': []}, 'PASS_TO_PASS': {'success': ['tests/test_pycode_ast.py::test_unparse[a', 'tests/test_pycode_ast.py::test_unparse[os.path-os.path]', 'tests/test_pycode_ast.py::test_unparse[1', "tests/test_pycode_ast.py::test_unparse[b'bytes'-b'bytes']", 'tests/test_pycode_ast.py::test_unparse[object()-object()]', 'tests/test_pycode_ast.py::test_unparse[1234-1234_0]', "tests/test_pycode_ast.py::test_unparse[{'key1':", 'tests/test_pycode_ast.py::test_unparse[...-...]', 'tests/test_pycode_ast.py::test_unparse[Tuple[int,', 'tests/test_pycode_ast.py::test_unparse[~', 'tests/test_pycode_ast.py::test_unparse[lambda', 'tests/test_pycode_ast.py::test_unparse[[1,', 'tests/test_pycode_ast.py::test_unparse[sys-sys]', 'tests/test_pycode_ast.py::test_unparse[1234-1234_1]', 'tests/test_pycode_ast.py::test_unparse[not', 'tests/test_pycode_ast.py::test_unparse[{1,', "tests/test_pycode_ast.py::test_unparse['str'-'str']", 'tests/test_pycode_ast.py::test_unparse[+', 'tests/test_pycode_ast.py::test_unparse[-', 'tests/test_pycode_ast.py::test_unparse[(1,', 'tests/test_pycode_ast.py::test_unparse[()-()]', 'tests/test_pycode_ast.py::test_unparse_None', 'tests/test_pycode_ast.py::test_unparse_py38[lambda', 'tests/test_pycode_ast.py::test_unparse_py38[0x1234-0x1234]', 'tests/test_pycode_ast.py::test_unparse_py38[1_000_000-1_000_000]'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sphinx-doc__sphinx-9367: resolved: True
+2026-11-01 17:17:37,037 - INFO - Attempting to stop container sweb.eval.sphinx-doc__sphinx-9367.run_4-sphinx-doc__sphinx-9367...
+2026-11-01 17:17:52,245 - INFO - Container sweb.eval.sphinx-doc__sphinx-9367.run_4-sphinx-doc__sphinx-9367 stopped successfully.
+2026-11-01 17:17:52,245 - INFO - Attempting to remove container sweb.eval.sphinx-doc__sphinx-9367.run_4-sphinx-doc__sphinx-9367...
+2026-11-01 17:17:52,283 - INFO - Container sweb.eval.sphinx-doc__sphinx-9367.run_4-sphinx-doc__sphinx-9367 removed successfully.

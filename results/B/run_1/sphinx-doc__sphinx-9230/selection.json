@@ -1,0 +1,43 @@
+{
+  "chosen": "attempt_3",
+  "reason": "verified; passes 2 pooled reproductions; group of 2 with identical results",
+  "pooled_reproductions": 3,
+  "evaluations": [
+    {
+      "name": "attempt_1",
+      "applies": true,
+      "repro_passes": [
+        false,
+        false,
+        false
+      ],
+      "regressions": [],
+      "patch_lines": 10,
+      "eligible": true
+    },
+    {
+      "name": "attempt_2",
+      "applies": true,
+      "repro_passes": [
+        false,
+        true,
+        true
+      ],
+      "regressions": [],
+      "patch_lines": 22,
+      "eligible": true
+    },
+    {
+      "name": "attempt_3",
+      "applies": true,
+      "repro_passes": [
+        false,
+        true,
+        true
+      ],
+      "regressions": [],
+      "patch_lines": 15,
+      "eligible": true
+    }
+  ]
+}

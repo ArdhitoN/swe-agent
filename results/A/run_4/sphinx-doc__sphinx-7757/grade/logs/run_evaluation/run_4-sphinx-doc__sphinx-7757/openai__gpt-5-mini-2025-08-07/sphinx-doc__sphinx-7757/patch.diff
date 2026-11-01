@@ -1,0 +1,40 @@
+diff --git a/sphinx/util/inspect.py b/sphinx/util/inspect.py
+index 15f0d66e2..a7b39c0e8 100644
+--- a/sphinx/util/inspect.py
++++ b/sphinx/util/inspect.py
+@@ -521,14 +521,31 @@ def signature_from_str(signature: str) -> inspect.Signature:
+     params = []
+ 
+     if hasattr(args, "posonlyargs"):
+-        for arg in args.posonlyargs:  # type: ignore
++        # ast.arguments.defaults contains default values for the last N
++        # arguments of the combined positional arguments (posonlyargs + args).
++        # We need to map defaults to posonlyargs as well as regular args.
++        posonly_len = len(args.posonlyargs)
++        args_len = len(args.args)
++        total_pos = posonly_len + args_len
++        defaults_len = len(args.defaults)
++        for i, arg in enumerate(args.posonlyargs):  # type: ignore
+             annotation = ast_unparse(arg.annotation) or Parameter.empty
++            # combined index among positional arguments
++            combined_index = i
++            if defaults_len and combined_index >= total_pos - defaults_len:
++                default_index = combined_index - (total_pos - defaults_len)
++                default = ast_unparse(args.defaults[default_index])
++            else:
++                default = Parameter.empty
+             params.append(Parameter(arg.arg, Parameter.POSITIONAL_ONLY,
+-                                    annotation=annotation))
++                                    default=default, annotation=annotation))
+ 
+     for i, arg in enumerate(args.args):
+-        if len(args.args) - i <= len(args.defaults):
+-            default = ast_unparse(args.defaults[-len(args.args) + i])
++        # combined index among positional arguments (posonlyargs come first)
++        combined_index = posonly_len + i
++        if defaults_len and combined_index >= total_pos - defaults_len:
++            default_index = combined_index - (total_pos - defaults_len)
++            default = ast_unparse(args.defaults[default_index])
+         else:
+             default = Parameter.empty
+ 

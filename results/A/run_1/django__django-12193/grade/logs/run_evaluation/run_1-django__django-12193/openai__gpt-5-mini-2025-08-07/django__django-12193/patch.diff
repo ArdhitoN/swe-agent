@@ -1,0 +1,31 @@
+diff --git a/django/contrib/postgres/forms/array.py b/django/contrib/postgres/forms/array.py
+index 2e19cd574a..2a13a6603c 100644
+--- a/django/contrib/postgres/forms/array.py
++++ b/django/contrib/postgres/forms/array.py
+@@ -137,15 +137,23 @@ class SplitArrayWidget(forms.Widget):
+             self.widget.is_localized = self.is_localized
+         value = value or []
+         context['widget']['subwidgets'] = []
+-        final_attrs = self.build_attrs(attrs)
+-        id_ = final_attrs.get('id')
++        # Build the base attrs once, but don't reuse a single dict for each
++        # subwidget. Some widgets (CheckboxInput) mutate the attrs passed to
++        # get_context() (e.g. set 'checked'), which would leak state from one
++        # subwidget to the next. Create a fresh copy for each subwidget so
++        # mutations don't affect subsequent iterations.
++        base_final_attrs = self.build_attrs(attrs)
++        id_ = base_final_attrs.get('id')
+         for i in range(max(len(value), self.size)):
+             try:
+                 widget_value = value[i]
+             except IndexError:
+                 widget_value = None
++            # Copy the base attrs for this subwidget so the widget can
++            # freely mutate the dict it receives without affecting others.
++            final_attrs = dict(base_final_attrs)
+             if id_:
+-                final_attrs = {**final_attrs, 'id': '%s_%s' % (id_, i)}
++                final_attrs['id'] = '%s_%s' % (id_, i)
+             context['widget']['subwidgets'].append(
+                 self.widget.get_context(name + '_%s' % i, widget_value, final_attrs)['widget']
+             )

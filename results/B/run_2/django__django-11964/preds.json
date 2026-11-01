@@ -1,0 +1,7 @@
+{
+  "django__django-11964": {
+    "model_name_or_path": "openai/gpt-5-mini-2025-08-07",
+    "instance_id": "django__django-11964",
+    "model_patch": "diff --git a/django/db/models/enums.py b/django/db/models/enums.py\nindex bbe362a6ab..308c820353 100755\n--- a/django/db/models/enums.py\n+++ b/django/db/models/enums.py\n@@ -60,7 +60,15 @@ class ChoicesMeta(enum.EnumMeta):\n \n class Choices(enum.Enum, metaclass=ChoicesMeta):\n     \"\"\"Class for creating enumerated choices.\"\"\"\n-    pass\n+\n+    def __str__(self):\n+        \"\"\"Return the underlying value as the string representation.\n+\n+        This is useful for TextChoices/IntegerChoices so that str(member)\n+        yields the actual value (e.g. 'first' or '1') instead of\n+        'ClassName.MEMBER'.\n+        \"\"\"\n+        return str(self.value)\n \n \n class IntegerChoices(int, Choices):\n"
+  }
+}
