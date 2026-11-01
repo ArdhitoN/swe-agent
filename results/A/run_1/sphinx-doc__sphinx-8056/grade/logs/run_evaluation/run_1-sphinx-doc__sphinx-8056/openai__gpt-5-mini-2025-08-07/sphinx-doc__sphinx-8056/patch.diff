@@ -1,0 +1,40 @@
+diff --git a/sphinx/ext/napoleon/docstring.py b/sphinx/ext/napoleon/docstring.py
+index b3daa06f1..d701a6904 100644
+--- a/sphinx/ext/napoleon/docstring.py
++++ b/sphinx/ext/napoleon/docstring.py
+@@ -391,16 +391,27 @@ class GoogleDocstring:
+                                 ) -> List[str]:
+         lines = []
+         for _name, _type, _desc in fields:
+-            _desc = self._strip_empty(_desc)
+-            if any(_desc):
+-                _desc = self._fix_field_desc(_desc)
+-                field = ':%s %s: ' % (field_role, _name)
+-                lines.extend(self._format_block(field, _desc))
++            # If multiple parameter names are given on the same line
++            # (e.g. "x1, x2 : array_like"), some docutils backends do not
++            # render a combined :type: role correctly. In that case fall
++            # back to the inline field formatting used by _format_fields so
++            # the type (and keywords like "optional") remain visible.
++            if ',' in _name:
++                # Use the inline formatting for this field (shows name,
++                # type and description together) instead of separate
++                # :param:/:type: roles which may not support comma lists.
++                lines.extend(self._format_field(_name, _type, _desc))
+             else:
+-                lines.append(':%s %s:' % (field_role, _name))
++                _desc = self._strip_empty(_desc)
++                if any(_desc):
++                    _desc = self._fix_field_desc(_desc)
++                    field = ':%s %s: ' % (field_role, _name)
++                    lines.extend(self._format_block(field, _desc))
++                else:
++                    lines.append(':%s %s:' % (field_role, _name))
+ 
+-            if _type:
+-                lines.append(':%s %s: %s' % (type_role, _name, _type))
++                if _type:
++                    lines.append(':%s %s: %s' % (type_role, _name, _type))
+         return lines + ['']
+ 
+     def _format_field(self, _name: str, _type: str, _desc: List[str]) -> List[str]:

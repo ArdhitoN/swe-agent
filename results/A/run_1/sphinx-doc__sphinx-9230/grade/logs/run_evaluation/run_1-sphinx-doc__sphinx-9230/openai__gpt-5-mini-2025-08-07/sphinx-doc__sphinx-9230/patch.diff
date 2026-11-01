@@ -1,0 +1,40 @@
+diff --git a/sphinx/ext/napoleon/docstring.py b/sphinx/ext/napoleon/docstring.py
+index d8cb75a5f..3ab326cbe 100644
+--- a/sphinx/ext/napoleon/docstring.py
++++ b/sphinx/ext/napoleon/docstring.py
+@@ -266,8 +266,33 @@ class GoogleDocstring:
+         if parse_type:
+             match = _google_typed_arg_regex.match(before)
+             if match:
+-                _name = match.group(1).strip()
+-                _type = match.group(2)
++                # If the regex match does not consume the entire 'before'
++                # string, it means the form is likely ``type(name) var`` or
++                # ``type(args) name`` (type before name). In that case,
++                # treat the matched portion as the type and the remainder
++                # as the parameter name. Otherwise, use the usual
++                # ``name(type)`` convention.
++                span_end = match.end()
++                trailing = before[span_end:].strip()
++                if trailing:
++                    _type = before[:span_end].strip()
++                    _name = trailing
++                else:
++                    _name = match.group(1).strip()
++                    _type = match.group(2)
++            else:
++                # Support a less common but seen form where the type
++                # appears before the name, e.g. ``dict(str, str) opc_meta``.
++                # In that case, extract the parenthesized type first and
++                # treat the following token as the parameter name.
++                open_idx = before.find('(')
++                close_idx = before.find(')', open_idx + 1) if open_idx != -1 else -1
++                if open_idx != -1 and close_idx != -1:
++                    type_candidate = before[:close_idx + 1].strip()
++                    name_candidate = before[close_idx + 1:].strip()
++                    if name_candidate:
++                        _type = type_candidate
++                        _name = name_candidate
+ 
+         _name = self._escape_args_and_kwargs(_name)
+ 

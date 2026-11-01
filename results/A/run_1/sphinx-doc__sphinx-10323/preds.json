@@ -1,0 +1,7 @@
+{
+  "sphinx-doc__sphinx-10323": {
+    "model_name_or_path": "openai/gpt-5-mini-2025-08-07",
+    "instance_id": "sphinx-doc__sphinx-10323",
+    "model_patch": "diff --git a/sphinx/directives/code.py b/sphinx/directives/code.py\nindex dc44ed314..b398473e5 100644\n--- a/sphinx/directives/code.py\n+++ b/sphinx/directives/code.py\n@@ -220,13 +220,18 @@ class LiteralIncludeReader:\n         if 'diff' in self.options:\n             lines = self.show_diff()\n         else:\n+            # Apply dedent only to the included file content.  If dedent is\n+            # applied after prepend/append, those strings will also be\n+            # trimmed which is undesirable: prepend/append should be treated\n+            # as literal lines to be inserted as-is.  Therefore, run\n+            # dedent_filter before prepend/append filters.\n             filters = [self.pyobject_filter,\n                        self.start_filter,\n                        self.end_filter,\n                        self.lines_filter,\n+                       self.dedent_filter,\n                        self.prepend_filter,\n-                       self.append_filter,\n-                       self.dedent_filter]\n+                       self.append_filter]\n             lines = self.read_file(self.filename, location=location)\n             for func in filters:\n                 lines = func(lines, location=location)\n"
+  }
+}

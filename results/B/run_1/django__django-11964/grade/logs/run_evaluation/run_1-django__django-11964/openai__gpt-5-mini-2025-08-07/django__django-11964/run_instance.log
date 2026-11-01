@@ -1,0 +1,60 @@
+2026-11-01 17:15:24,018 - INFO - Creating container for django__django-11964...
+2026-11-01 17:15:24,082 - INFO - Container for django__django-11964 created: 5a84b87a8eb666656e86861025ed913b5744de207456d69d202fea79c8981201
+2026-11-01 17:15:24,180 - INFO - Container for django__django-11964 started: 5a84b87a8eb666656e86861025ed913b5744de207456d69d202fea79c8981201
+2026-11-01 17:15:24,180 - INFO - Intermediate patch for django__django-11964 written to logs/run_evaluation/run_1-django__django-11964/openai__gpt-5-mini-2025-08-07/django__django-11964/patch.diff, now applying to container...
+2026-11-01 17:15:24,298 - INFO - >>>>> Applied Patch:
+Checking patch django/db/models/enums.py...
+Applied patch django/db/models/enums.py cleanly.
+
+2026-11-01 17:15:24,990 - INFO - Git diff before:
+diff --git a/django/db/models/enums.py b/django/db/models/enums.py
+index bbe362a6ab..110ce86c40 100755
+--- a/django/db/models/enums.py
++++ b/django/db/models/enums.py
+@@ -60,7 +60,14 @@ class ChoicesMeta(enum.EnumMeta):
+ 
+ class Choices(enum.Enum, metaclass=ChoicesMeta):
+     """Class for creating enumerated choices."""
+-    pass
++
++    def __str__(self):
++        """Return the underlying value when converted to string.
++
++        This ensures TextChoices/IntegerChoices members behave like their
++        underlying types when stringified (e.g., str(MyChoice.FIRST) -> 'first').
++        """
++        return str(self.value)
+ 
+ 
+ class IntegerChoices(int, Choices):
+2026-11-01 17:15:24,991 - INFO - Eval script for django__django-11964 written to logs/run_evaluation/run_1-django__django-11964/openai__gpt-5-mini-2025-08-07/django__django-11964/eval.sh; copying to container...
+2026-11-01 17:15:39,888 - INFO - Test runtime: 14.85 seconds
+2026-11-01 17:15:39,890 - INFO - Test output for django__django-11964 written to logs/run_evaluation/run_1-django__django-11964/openai__gpt-5-mini-2025-08-07/django__django-11964/test_output.txt
+2026-11-01 17:15:40,012 - INFO - Git diff after:
+diff --git a/django/db/models/enums.py b/django/db/models/enums.py
+index bbe362a6ab..110ce86c40 100755
+--- a/django/db/models/enums.py
++++ b/django/db/models/enums.py
+@@ -60,7 +60,14 @@ class ChoicesMeta(enum.EnumMeta):
+ 
+ class Choices(enum.Enum, metaclass=ChoicesMeta):
+     """Class for creating enumerated choices."""
+-    pass
++
++    def __str__(self):
++        """Return the underlying value when converted to string.
++
++        This ensures TextChoices/IntegerChoices members behave like their
++        underlying types when stringified (e.g., str(MyChoice.FIRST) -> 'first').
++        """
++        return str(self.value)
+ 
+ 
+ class IntegerChoices(int, Choices):
+2026-11-01 17:15:40,013 - INFO - Grading answer for django__django-11964...
+2026-11-01 17:15:40,019 - INFO - report: {'django__django-11964': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'infra_failure': False, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_str (model_enums.tests.ChoicesTests)', 'test_textchoices (model_enums.tests.ChoicesTests)'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_integerchoices (model_enums.tests.ChoicesTests)', 'test_integerchoices_auto_label (model_enums.tests.ChoicesTests)', 'test_integerchoices_containment (model_enums.tests.ChoicesTests)', 'test_integerchoices_empty_label (model_enums.tests.ChoicesTests)', 'test_integerchoices_functional_api (model_enums.tests.ChoicesTests)', 'test_invalid_definition (model_enums.tests.ChoicesTests)', 'test_textchoices_auto_label (model_enums.tests.ChoicesTests)', 'test_textchoices_blank_value (model_enums.tests.ChoicesTests)', 'test_textchoices_containment (model_enums.tests.ChoicesTests)', 'test_textchoices_empty_label (model_enums.tests.ChoicesTests)', 'test_textchoices_functional_api (model_enums.tests.ChoicesTests)', 'test_bool_unsupported (model_enums.tests.CustomChoicesTests)', 'test_labels_valid (model_enums.tests.CustomChoicesTests)', 'test_timezone_unsupported (model_enums.tests.CustomChoicesTests)', 'test_uuid_unsupported (model_enums.tests.CustomChoicesTests)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-11964: resolved: True
+2026-11-01 17:15:40,020 - INFO - Attempting to stop container sweb.eval.django__django-11964.run_1-django__django-11964...
+2026-11-01 17:15:55,210 - INFO - Container sweb.eval.django__django-11964.run_1-django__django-11964 stopped successfully.
+2026-11-01 17:15:55,211 - INFO - Attempting to remove container sweb.eval.django__django-11964.run_1-django__django-11964...
+2026-11-01 17:15:55,255 - INFO - Container sweb.eval.django__django-11964.run_1-django__django-11964 removed successfully.

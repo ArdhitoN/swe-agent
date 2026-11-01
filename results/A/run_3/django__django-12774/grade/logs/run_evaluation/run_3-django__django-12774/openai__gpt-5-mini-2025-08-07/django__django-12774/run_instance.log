@@ -1,0 +1,89 @@
+2026-11-01 16:39:50,334 - INFO - Creating container for django__django-12774...
+2026-11-01 16:39:50,389 - INFO - Container for django__django-12774 created: d8eedc5c06d062a1cfd1d6e501667e319bb1fb3ac2e3b463653390d394a19ccd
+2026-11-01 16:39:50,491 - INFO - Container for django__django-12774 started: d8eedc5c06d062a1cfd1d6e501667e319bb1fb3ac2e3b463653390d394a19ccd
+2026-11-01 16:39:50,492 - INFO - Intermediate patch for django__django-12774 written to logs/run_evaluation/run_3-django__django-12774/openai__gpt-5-mini-2025-08-07/django__django-12774/patch.diff, now applying to container...
+2026-11-01 16:39:50,619 - INFO - >>>>> Applied Patch:
+/tmp/patch.diff:17: trailing whitespace.
+                if (field_name,) in getattr(self.model._meta, 'unique_together', ()): 
+/tmp/patch.diff:21: trailing whitespace.
+                    for constraint in getattr(self.model._meta, 'constraints', ()): 
+Checking patch django/db/models/query.py...
+Applied patch django/db/models/query.py cleanly.
+warning: 2 lines add whitespace errors.
+
+2026-11-01 16:39:51,260 - INFO - Git diff before:
+diff --git a/django/db/models/query.py b/django/db/models/query.py
+index d9c9b0db04..31abdaa826 100644
+--- a/django/db/models/query.py
++++ b/django/db/models/query.py
+@@ -689,8 +689,25 @@ class QuerySet:
+         """
+         assert not self.query.is_sliced, \
+             "Cannot use 'limit' or 'offset' with in_bulk"
+-        if field_name != 'pk' and not self.model._meta.get_field(field_name).unique:
+-            raise ValueError("in_bulk()'s field_name must be a unique field but %r isn't." % field_name)
++        if field_name != 'pk':
++            field = self.model._meta.get_field(field_name)
++            is_unique = field.unique
++            # Also consider uniqueness declared via UniqueConstraint or unique_together
++            if not is_unique:
++                # unique_together can declare a single-field uniqueness as a tuple
++                if (field_name,) in getattr(self.model._meta, 'unique_together', ()): 
++                    is_unique = True
++                else:
++                    # Check UniqueConstraint instances on the model (only unconitioned ones)
++                    for constraint in getattr(self.model._meta, 'constraints', ()): 
++                        from django.db.models import UniqueConstraint
++
++                        if isinstance(constraint, UniqueConstraint) and constraint.condition is None:
++                            if tuple(constraint.fields) == (field_name,):
++                                is_unique = True
++                                break
++            if not is_unique:
++                raise ValueError("in_bulk()'s field_name must be a unique field but %r isn't." % field_name)
+         if id_list is not None:
+             if not id_list:
+                 return {}
+2026-11-01 16:39:51,261 - INFO - Eval script for django__django-12774 written to logs/run_evaluation/run_3-django__django-12774/openai__gpt-5-mini-2025-08-07/django__django-12774/eval.sh; copying to container...
+2026-11-01 16:40:05,744 - INFO - Test runtime: 14.42 seconds
+2026-11-01 16:40:05,745 - INFO - Test output for django__django-12774 written to logs/run_evaluation/run_3-django__django-12774/openai__gpt-5-mini-2025-08-07/django__django-12774/test_output.txt
+2026-11-01 16:40:05,851 - INFO - Git diff after:
+diff --git a/django/db/models/query.py b/django/db/models/query.py
+index d9c9b0db04..31abdaa826 100644
+--- a/django/db/models/query.py
++++ b/django/db/models/query.py
+@@ -689,8 +689,25 @@ class QuerySet:
+         """
+         assert not self.query.is_sliced, \
+             "Cannot use 'limit' or 'offset' with in_bulk"
+-        if field_name != 'pk' and not self.model._meta.get_field(field_name).unique:
+-            raise ValueError("in_bulk()'s field_name must be a unique field but %r isn't." % field_name)
++        if field_name != 'pk':
++            field = self.model._meta.get_field(field_name)
++            is_unique = field.unique
++            # Also consider uniqueness declared via UniqueConstraint or unique_together
++            if not is_unique:
++                # unique_together can declare a single-field uniqueness as a tuple
++                if (field_name,) in getattr(self.model._meta, 'unique_together', ()): 
++                    is_unique = True
++                else:
++                    # Check UniqueConstraint instances on the model (only unconitioned ones)
++                    for constraint in getattr(self.model._meta, 'constraints', ()): 
++                        from django.db.models import UniqueConstraint
++
++                        if isinstance(constraint, UniqueConstraint) and constraint.condition is None:
++                            if tuple(constraint.fields) == (field_name,):
++                                is_unique = True
++                                break
++            if not is_unique:
++                raise ValueError("in_bulk()'s field_name must be a unique field but %r isn't." % field_name)
+         if id_list is not None:
+             if not id_list:
+                 return {}
+2026-11-01 16:40:05,851 - INFO - Grading answer for django__django-12774...
+2026-11-01 16:40:05,853 - INFO - report: {'django__django-12774': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'infra_failure': False, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_in_bulk_meta_constraint (lookup.tests.LookupTests)'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_chain_date_time_lookups (lookup.tests.LookupTests)', 'test_count (lookup.tests.LookupTests)', 'test_custom_field_none_rhs (lookup.tests.LookupTests)', 'Lookup.can_use_none_as_rhs=True allows None as a lookup value.', 'test_error_messages (lookup.tests.LookupTests)', 'test_escaping (lookup.tests.LookupTests)', 'test_exact_exists (lookup.tests.LookupTests)', 'Transforms are used for __exact=None.', 'test_exact_query_rhs_with_selected_columns (lookup.tests.LookupTests)', 'test_exact_sliced_queryset_limit_one (lookup.tests.LookupTests)', 'test_exact_sliced_queryset_limit_one_offset (lookup.tests.LookupTests)', 'test_exact_sliced_queryset_not_limited_to_one (lookup.tests.LookupTests)', 'test_exclude (lookup.tests.LookupTests)', 'test_exists (lookup.tests.LookupTests)', 'test_get_next_previous_by (lookup.tests.LookupTests)', 'test_in (lookup.tests.LookupTests)', 'test_in_bulk (lookup.tests.LookupTests)', 'test_in_bulk_lots_of_ids (lookup.tests.LookupTests)', 'test_in_bulk_non_unique_field (lookup.tests.LookupTests)', 'test_in_bulk_non_unique_meta_constaint (lookup.tests.LookupTests)', 'test_in_bulk_with_field (lookup.tests.LookupTests)', 'test_in_different_database (lookup.tests.LookupTests)', 'test_in_keeps_value_ordering (lookup.tests.LookupTests)', 'test_isnull_non_boolean_value (lookup.tests.LookupTests)', 'test_iterator (lookup.tests.LookupTests)', 'test_lookup_collision (lookup.tests.LookupTests)', 'test_lookup_date_as_str (lookup.tests.LookupTests)', 'test_lookup_int_as_str (lookup.tests.LookupTests)', 'test_nested_outerref_lhs (lookup.tests.LookupTests)', 'test_none (lookup.tests.LookupTests)', 'test_nonfield_lookups (lookup.tests.LookupTests)', 'test_pattern_lookups_with_substr (lookup.tests.LookupTests)', 'test_regex (lookup.tests.LookupTests)', 'test_regex_backreferencing (lookup.tests.LookupTests)', 'test_regex_non_ascii (lookup.tests.LookupTests)', 'test_regex_non_string (lookup.tests.LookupTests)', 'test_regex_null (lookup.tests.LookupTests)', 'test_relation_nested_lookup_error (lookup.tests.LookupTests)', 'test_unsupported_lookups (lookup.tests.LookupTests)', 'test_values (lookup.tests.LookupTests)', 'test_values_list (lookup.tests.LookupTests)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-12774: resolved: True
+2026-11-01 16:40:05,854 - INFO - Attempting to stop container sweb.eval.django__django-12774.run_3-django__django-12774...
+2026-11-01 16:40:21,085 - INFO - Container sweb.eval.django__django-12774.run_3-django__django-12774 stopped successfully.
+2026-11-01 16:40:21,086 - INFO - Attempting to remove container sweb.eval.django__django-12774.run_3-django__django-12774...
+2026-11-01 16:40:21,133 - INFO - Container sweb.eval.django__django-12774.run_3-django__django-12774 removed successfully.

@@ -1,0 +1,32 @@
+[
+  {
+    "attempt": 1,
+    "exit_status": "Restart",
+    "verified": false,
+    "api_calls": 32,
+    "cost": 0.012619275000000003,
+    "patch_id": null,
+    "has_repro": false,
+    "events": 5
+  },
+  {
+    "attempt": 2,
+    "exit_status": "Restart",
+    "verified": false,
+    "api_calls": 51,
+    "cost": 0.031304675000000004,
+    "patch_id": null,
+    "has_repro": true,
+    "events": 6
+  },
+  {
+    "attempt": 3,
+    "exit_status": "Submitted",
+    "verified": true,
+    "api_calls": 63,
+    "cost": 0.05002017499999999,
+    "patch_id": "78e023cc2458",
+    "has_repro": true,
+    "events": 8
+  }
+]

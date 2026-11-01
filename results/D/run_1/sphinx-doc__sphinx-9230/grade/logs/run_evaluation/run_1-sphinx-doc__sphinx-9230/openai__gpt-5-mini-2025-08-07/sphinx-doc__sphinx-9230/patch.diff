@@ -1,0 +1,28 @@
+diff --git a/sphinx/ext/napoleon/docstring.py b/sphinx/ext/napoleon/docstring.py
+index d8cb75a5f..6cdfe99ca 100644
+--- a/sphinx/ext/napoleon/docstring.py
++++ b/sphinx/ext/napoleon/docstring.py
+@@ -62,7 +62,9 @@ def _convert_type_spec(_type: str, translations: Dict[str, str] = {}) -> str:
+         if _type == 'None':
+             return ':obj:`None`'
+         else:
+-            return ':class:`%s`' % _type
++            # normalize whitespace inside type spec, e.g. 'dict(str, str)' -> 'dict(str,str)'
++            _type_norm = re.sub(r',\s*', ',', _type)
++            return ':class:`%s`' % _type_norm
+ 
+     return _type
+ 
+@@ -268,6 +270,12 @@ class GoogleDocstring:
+             if match:
+                 _name = match.group(1).strip()
+                 _type = match.group(2)
++            else:
++                # support 'type name' ordering, e.g. 'dict(str, str) opc_meta'
++                m2 = re.match(r"^\s*(\S+\(.*\))\s+(.+)$", before)
++                if m2:
++                    _type = m2.group(1).strip()
++                    _name = m2.group(2).strip()
+ 
+         _name = self._escape_args_and_kwargs(_name)
+ 

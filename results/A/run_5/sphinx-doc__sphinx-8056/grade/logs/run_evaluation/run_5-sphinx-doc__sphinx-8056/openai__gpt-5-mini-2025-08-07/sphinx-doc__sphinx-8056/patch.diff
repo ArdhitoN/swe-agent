@@ -1,0 +1,25 @@
+diff --git a/sphinx/ext/napoleon/docstring.py b/sphinx/ext/napoleon/docstring.py
+index b3daa06f1..2d1e175c3 100644
+--- a/sphinx/ext/napoleon/docstring.py
++++ b/sphinx/ext/napoleon/docstring.py
+@@ -272,7 +272,19 @@ class GoogleDocstring:
+         fields = []
+         while not self._is_section_break():
+             _name, _type, _desc = self._consume_field(parse_type, prefer_type)
+-            if _name or _type or _desc:
++            if not (_name or _type or _desc):
++                continue
++
++            # Support comma-separated parameter names in a single field
++            # (e.g. "x1, x2 : array_like"). Split them into individual
++            # entries so they render correctly (with their shared type and
++            # description).
++            if _name and "," in _name:
++                # split on comma and optional whitespace; preserve order
++                parts = [p.strip() for p in _name.split(',') if p.strip()]
++                for p in parts:
++                    fields.append((p, _type, list(_desc)))
++            else:
+                 fields.append((_name, _type, _desc,))
+         return fields
+ 

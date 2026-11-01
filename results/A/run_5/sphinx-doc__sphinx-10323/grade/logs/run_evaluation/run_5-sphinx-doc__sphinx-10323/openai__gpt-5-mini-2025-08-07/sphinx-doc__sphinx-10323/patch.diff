@@ -1,0 +1,26 @@
+diff --git a/sphinx/directives/code.py b/sphinx/directives/code.py
+index dc44ed314..7f25d144a 100644
+--- a/sphinx/directives/code.py
++++ b/sphinx/directives/code.py
+@@ -220,13 +220,19 @@ class LiteralIncludeReader:
+         if 'diff' in self.options:
+             lines = self.show_diff()
+         else:
++            # Apply dedent to the included file content before adding any
++            # :prepend: or :append: strings.  If dedent ran after
++            # prepend/append, it could strip leading whitespace from the
++            # user-supplied prepend/append content and trigger warnings
++            # ("non-whitespace stripped by dedent").  Running dedent first
++            # preserves the exact whitespace of prepend/append values.
+             filters = [self.pyobject_filter,
+                        self.start_filter,
+                        self.end_filter,
+                        self.lines_filter,
++                       self.dedent_filter,
+                        self.prepend_filter,
+-                       self.append_filter,
+-                       self.dedent_filter]
++                       self.append_filter]
+             lines = self.read_file(self.filename, location=location)
+             for func in filters:
+                 lines = func(lines, location=location)

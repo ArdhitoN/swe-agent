@@ -1,0 +1,45 @@
+diff --git a/sphinx/ext/napoleon/docstring.py b/sphinx/ext/napoleon/docstring.py
+index b3daa06f1..8d83a8f97 100644
+--- a/sphinx/ext/napoleon/docstring.py
++++ b/sphinx/ext/napoleon/docstring.py
+@@ -391,16 +391,32 @@ class GoogleDocstring:
+                                 ) -> List[str]:
+         lines = []
+         for _name, _type, _desc in fields:
++            # Support multiple parameter names listed on one line like
++            # "x1, x2 : array_like" by splitting them and emitting a
++            # separate :param: and :type: entry for each name. Some Sphinx
++            # renderers do not handle comma-separated names in a single
++            # :param: role correctly.
++            names = [_name]
++            if _name and ', ' in _name:
++                names = [n.strip() for n in _name.split(',') if n.strip()]
++
+             _desc = self._strip_empty(_desc)
+-            if any(_desc):
+-                _desc = self._fix_field_desc(_desc)
+-                field = ':%s %s: ' % (field_role, _name)
+-                lines.extend(self._format_block(field, _desc))
+-            else:
+-                lines.append(':%s %s:' % (field_role, _name))
++            # Emit a :param: entry for each name. Only the first emitted
++            # param needs to carry the full description block; subsequent
++            # params will get the same description to preserve behavior
++            # expected by users who grouped names together.
++            for i, name in enumerate(names):
++                if any(_desc):
++                    desc_block = self._fix_field_desc(_desc)
++                    field = ':%s %s: ' % (field_role, name)
++                    lines.extend(self._format_block(field, desc_block))
++                else:
++                    lines.append(':%s %s:' % (field_role, name))
+ 
+-            if _type:
+-                lines.append(':%s %s: %s' % (type_role, _name, _type))
++                if _type:
++                    # Emit a :type: line per parameter name so Sphinx can
++                    # associate the type with each individual parameter.
++                    lines.append(':%s %s: %s' % (type_role, name, _type))
+         return lines + ['']
+ 
+     def _format_field(self, _name: str, _type: str, _desc: List[str]) -> List[str]:
