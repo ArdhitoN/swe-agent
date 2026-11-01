@@ -44,6 +44,20 @@ Full tables: [`reports/summary.md`](reports/summary.md). How and why everything 
 | **C** | Control | **our** test-based selector applied to 3 of the **baseline's** patches. If C does as well as B, our gain is just "more tries + picking" |
 | **D** | Ablation | our agent's **first attempt only**: is one attempt of ours better than one baseline run? |
 
+### What our agent changes, compared with the baseline
+
+The baseline gives the model a terminal and one try: it runs shell commands until it hands in a fix,
+and nothing checks the fix first. Our agent adds four things:
+
+1. **Better tools:** search, view, run tests, find the related existing tests, and a safe edit tool
+   (refuses ambiguous edits, undoes edits that break the code, won't touch test files).
+   *Why:* many baseline failures come from clumsy edits through the terminal.
+2. **Rules before handing in:** first write a script that shows the bug on the original code; hand in
+   only once that script passes and the related tests still pass. *Why:* no unchecked fixes.
+3. **Up to 3 attempts, then a test-based pick** of the best fix, all within the same budget.
+   *Why:* several tries plus a good pick usually beats one try.
+4. **A stuck detector** that gives a hint when the model keeps repeating itself.
+
 Same for every agent:
 - **Model:** `gpt-5-mini-2025-08-07` (a dated snapshot), OpenAI "flex" tier.
 - **Budget per bug:** the baseline's own limits, **250 model calls and $3**. Our agent's attempts share it.
