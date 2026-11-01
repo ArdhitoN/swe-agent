@@ -23,7 +23,8 @@ runs:
 dataset:
   pool: MariusHobbhahn/swe-bench-verified-mini   # community 50-bug subset of SWE-bench Verified; small enough for a laptop's disk
   pool_split: test
-  grading: princeton-nlp/SWE-bench_Verified      # the official dataset the official grader uses
+  runs: SWE-bench/SWE-bench_Verified            # official dataset; this version includes each bug's image and test script, which the grader needs
+  runs_split: test
 
 task_selection:                        # how the 8 test and 6 dev bugs are chosen (rule in src/lift_eval/tasks.py)
   seed: 20261101                       # today's date, written down before running the draw
