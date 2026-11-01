@@ -1,0 +1,30 @@
+[project]
+name = "gated-swe-agent"
+version = "0.1.0"
+description = "A test-gated coding agent for SWE-bench, measured fairly against mini-swe-agent"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "mini-swe-agent==2.4.6",
+    "swebench==5.0.2",
+    "pyyaml",
+    "typer",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[project.scripts]
+lift = "lift_eval.cli:app"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+gated_agent = ["*.yaml", "toolbox/*.py"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
