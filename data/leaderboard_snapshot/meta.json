@@ -1,0 +1,8 @@
+{
+  "experiments_repo_commit": "40f164d5b8f1d249bf95a6df8b74b577fd8e519d",
+  "leaderboard_url": "https://raw.githubusercontent.com/SWE-bench/swe-bench.github.io/master/data/leaderboards.json",
+  "pool_dataset": "MariusHobbhahn/swe-bench-verified-mini",
+  "pool_split": "test",
+  "n_pool": 50,
+  "n_runs": 40
+}
