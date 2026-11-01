@@ -1,0 +1,26 @@
+{
+  "django__django-11790": {
+    "cost": 0.001180625
+  },
+  "django__django-11815": {
+    "cost": 0.001215125
+  },
+  "django__django-12193": {
+    "cost": 0.00107
+  },
+  "django__django-12774": {
+    "cost": 0.000946
+  },
+  "sphinx-doc__sphinx-10323": {
+    "cost": 0.0013968750000000001
+  },
+  "sphinx-doc__sphinx-7757": {
+    "cost": 0.001451
+  },
+  "sphinx-doc__sphinx-8056": {
+    "cost": 0.001502125
+  },
+  "sphinx-doc__sphinx-9367": {
+    "cost": 0.0010653750000000001
+  }
+}

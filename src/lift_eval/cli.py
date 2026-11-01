@@ -1,5 +1,7 @@
 """Command-line entry point behind the Makefile targets."""
 
+import json
+
 import typer
 
 app = typer.Typer(add_completion=False, no_args_is_help=True)
@@ -79,6 +81,28 @@ def run_baseline(
         cfg, _bug_list(bugs), names, _run, lambda r, i: run_dir("A", r, i), expected_cost, keep_images
     )
 
+
+
+@app.command()
+def leak_scan():
+    """Scan every trajectory of every agent for commands that could reveal the fix."""
+    from lift_eval.leak_scan import scan, write_report
+
+    print(write_report(scan()))
+
+
+@app.command()
+def contamination(probe: bool = typer.Option(True, help="Run the paid probes P1/P2 (skipped if already saved)")):
+    """Memorization checks on the test bugs."""
+    from lift_eval.config import load_experiment
+    from lift_eval.contamination import probes
+    from lift_eval.tasks import TASKS_TEST
+
+    cfg = load_experiment()
+    bugs = TASKS_TEST.read_text().split()
+    saved = probes.PROBES_DIR / "probes.json"
+    data = probes.run_probes(cfg, bugs) if probe else (json.loads(saved.read_text()) if saved.exists() else {})
+    print(probes.write_report(probes.classify(cfg, data, bugs), cfg))
 
 
 if __name__ == "__main__":

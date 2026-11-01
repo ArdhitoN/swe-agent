@@ -1,0 +1,106 @@
+{
+  "django__django-11790": {
+    "gold_files": [
+      "django/contrib/auth/forms.py"
+    ],
+    "p1_answer": "django/contrib/auth/forms.py\ndjango/forms/widgets.py",
+    "p1_correct": true,
+    "p2_answers": [
+      "unknown",
+      "unknown",
+      "unknown"
+    ],
+    "p2_similarity": 0.0
+  },
+  "django__django-11815": {
+    "gold_files": [
+      "django/db/migrations/serializer.py"
+    ],
+    "p1_answer": "django/db/migrations/serializer.py\ndjango/db/migrations/writer.py",
+    "p1_correct": true,
+    "p2_answers": [
+      "unknown",
+      "unknown",
+      "unknown"
+    ],
+    "p2_similarity": 0.0
+  },
+  "django__django-12193": {
+    "gold_files": [
+      "django/forms/widgets.py"
+    ],
+    "p1_answer": "django/forms/widgets.py\ndjango/contrib/postgres/forms/fields.py\ndjango/contrib/postgres/forms/widgets.py",
+    "p1_correct": true,
+    "p2_answers": [
+      "unknown",
+      "unknown",
+      "unknown"
+    ],
+    "p2_similarity": 0.0
+  },
+  "django__django-12774": {
+    "gold_files": [
+      "django/db/models/query.py"
+    ],
+    "p1_answer": "django/db/models/query.py\ndjango/db/models/options.py",
+    "p1_correct": true,
+    "p2_answers": [
+      "unknown",
+      "unknown",
+      "unknown"
+    ],
+    "p2_similarity": 0.0
+  },
+  "sphinx-doc__sphinx-10323": {
+    "gold_files": [
+      "sphinx/directives/code.py"
+    ],
+    "p1_answer": "sphinx/directives/code.py\nsphinx/util/docutils.py",
+    "p1_correct": true,
+    "p2_answers": [
+      "unknown",
+      "unknown",
+      "unknown"
+    ],
+    "p2_similarity": 0.0
+  },
+  "sphinx-doc__sphinx-7757": {
+    "gold_files": [
+      "sphinx/util/inspect.py"
+    ],
+    "p1_answer": "sphinx/domains/python.py\nsphinx/util/inspect.py",
+    "p1_correct": true,
+    "p2_answers": [
+      "unknown",
+      "unknown",
+      "unknown"
+    ],
+    "p2_similarity": 0.0
+  },
+  "sphinx-doc__sphinx-8056": {
+    "gold_files": [
+      "sphinx/ext/napoleon/docstring.py"
+    ],
+    "p1_answer": "sphinx/ext/napoleon/docstring.py\nsphinx/ext/napoleon/__init__.py\nsphinx/ext/napoleon/napoleon.py",
+    "p1_correct": true,
+    "p2_answers": [
+      "unknown",
+      "unknown",
+      "unknown"
+    ],
+    "p2_similarity": 0.0
+  },
+  "sphinx-doc__sphinx-9367": {
+    "gold_files": [
+      "sphinx/pycode/ast.py"
+    ],
+    "p1_answer": "sphinx/pycode/ast.py\nsphinx/pycode/__init__.py",
+    "p1_correct": true,
+    "p2_answers": [
+      "unknown",
+      "unknown",
+      "unknown"
+    ],
+    "p2_similarity": 0.0
+  }
+}
