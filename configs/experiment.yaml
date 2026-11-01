@@ -1,0 +1,39 @@
+# Every setting of the experiment, in one place. Values are locked before the first
+# test-set run; the README quotes the commit hash, which identifies this exact setup.
+
+model:
+  name: openai/gpt-5-mini-2025-08-07   # dated snapshot: the model can't change between the baseline and final runs
+  reasoning_effort: null               # null = provider default; the same for every arm, so effort can't explain a difference
+  service_tier: flex                   # about half price, same model; set to "default" if flex isn't available
+
+budget:
+  per_bug_max_calls: 250               # mini-swe-agent's own step limit, so "same budget" means the baseline's budget
+  per_bug_max_cost_usd: 3.0            # mini-swe-agent's own cost limit, counted across all our attempts together
+  total_spend_cap_usd: 10.0            # the whole experiment's API budget (also capped by $10 prepaid credit)
+
+agent:
+  attempts_per_bug: 3                  # smallest number where a majority vote can break a tie; fits the budget
+  early_stop: true                     # stop when two verified attempts agree, to save budget
+  localize_budget_share: 0.25          # share of an attempt spent finding the code; starting value, tuned on dev bugs
+
+runs:
+  A: 5                                 # baseline runs: cheap, and its patches are reused for the control comparison
+  B: 3                                 # our agent's runs: one bug = 12.5 points, so one run alone would be mostly noise
+
+dataset:
+  pool: MariusHobbhahn/swe-bench-verified-mini   # community 50-bug subset of SWE-bench Verified; small enough for a laptop's disk
+  pool_split: test
+  grading: princeton-nlp/SWE-bench_Verified      # the official dataset the official grader uses
+
+task_selection:                        # how the 8 test and 6 dev bugs are chosen (rule in src/lift_eval/tasks.py)
+  seed: 20261101                       # today's date, written down before running the draw
+  band_low: 0.10                       # skip bugs almost no model fixes: they can't show a difference
+  band_high: 0.86                      # skip bugs almost every model fixes: same reason, and they're the most memorized
+  exclude_runs_matching: gpt-5-mini    # our own model's public runs never influence which bugs we pick
+  test_per_repo: {django: 4, sphinx-doc: 4}   # equal split, so the result doesn't describe just one project
+  dev_per_repo: {django: 3, sphinx-doc: 3}
+
+contamination:                         # memorization thresholds, fixed before looking at any results
+  p2_similarity_memorized: 0.80        # answer from the task ID alone this close to the official fix => memorized
+  p3_similarity_near_identical: 0.90   # our final patch this close to the official fix => near-identical
+  p4_too_early_steps: 3                # fix written within this many steps of first opening the file => suspicious
