@@ -105,5 +105,34 @@ def contamination(probe: bool = typer.Option(True, help="Run the paid probes P1/
     print(probes.write_report(probes.classify(cfg, data, bugs), cfg))
 
 
+@app.command()
+def grade_all(arm: str = typer.Option("", help="Only this agent's runs (A, B, C or D); default all")):
+    """Grade every run that has a patch but no grade yet (the schedules normally grade as they go)."""
+    from lift_eval import images
+    from lift_eval.config import load_experiment
+    from lift_eval.grade import grade_run
+    from lift_eval.spend import RESULTS_DIR
+
+    cfg = load_experiment()
+    for preds in sorted(RESULTS_DIR.glob(f"{arm or '*'}/run_*/*/preds.json")):
+        run = preds.parent
+        if not (run / "resolved.json").exists():
+            images.ensure_image(run.name)
+            print(run, grade_run(run, cfg["dataset"]["runs"], cfg["dataset"]["runs_split"]))
+
+
+@app.command()
+def report():
+    """Build reports/summary.md from saved results only (no API key needed)."""
+    from lift_eval.contamination.probes import REPORT as CONTAM
+    from lift_eval.tasks import TASKS_TEST
+
+    verdicts_path = CONTAM.with_suffix(".json")
+    verdicts = json.loads(verdicts_path.read_text()) if verdicts_path.exists() else None
+    from lift_eval.report import build_report
+
+    print(build_report(TASKS_TEST.read_text().split(), verdicts))
+
+
 if __name__ == "__main__":
     app()
