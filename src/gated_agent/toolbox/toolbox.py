@@ -272,6 +272,26 @@ def changed_source_files():
     return sorted(set(files))
 
 
+def shares_stem(a, b):
+    """True if two words start the same way, e.g. "deletion" and "delete" (shared "delet")."""
+    common = len(os.path.commonprefix([a, b]))
+    return common >= 5 and common >= 0.7 * min(len(a), len(b))
+
+
+def word_match(a, b):
+    """Same word, or one is a short form of the other ("py"/"python", "domain"/"domains")."""
+    if a == b:
+        return True
+    short, long_ = sorted((a, b), key=len)
+    return len(short) >= 2 and long_.startswith(short) or shares_stem(a, b)
+
+
+def has_tests(folder):
+    return os.path.isdir(folder) and any(
+        n == "tests.py" or n.startswith("test") for n in os.listdir(folder)
+    )
+
+
 def related_tests(files):
     """Existing test targets likely to cover the changed files (a cheap heuristic, capped at 3)."""
     kind = repo_kind()
@@ -279,20 +299,27 @@ def related_tests(files):
     for f in files:
         parts = f[:-3].split("/")
         if kind == "django" and parts and parts[0] == "django":
-            pkg = [p for p in parts[1:] if p not in ("__init__", "contrib", "core", "db", "utils")]
             tests_dir = os.path.join(REPO, "tests")
-            names = sorted(n for n in os.listdir(tests_dir) if os.path.isdir(os.path.join(tests_dir, n)))
+            names = sorted(n for n in os.listdir(tests_dir) if has_tests(os.path.join(tests_dir, n)))
+            skip = ("__init__", "contrib", "core", "db", "utils", "models")
+            packages = [p for p in parts[1:-1] if p not in skip]
+            stem = parts[-1] if parts[-1] != "__init__" else (parts[-2] if len(parts) > 2 else "")
+
+            def variants(key):
+                plural = key[:-1] + "ies" if key.endswith("y") else key + "s"
+                return [c for c in (key, key + "_tests", key.rstrip("s"), plural, "model_" + key) if c in names]
+
             found = []
-            for key in pkg[::-1]:
-                # exact names and simple variants first, then shared prefixes ("delete" <-> "deletion")
-                for cand in (key, key + "_tests", key.rstrip("s"), key + "s"):
-                    if cand in names and cand not in found:
-                        found.append(cand)
-                if not found and len(key) >= 5:
-                    found += [n for n in names if n.split("_")[0] and key.startswith(n.split("_")[0])
-                              and len(n.split("_")[0]) >= 5][:2]
+            # 1. the package the file lives in: django/forms/... -> forms_tests, contrib/auth -> auth_tests
+            for key in packages[::-1]:
+                found = variants(key)
                 if found:
                     break
+            if "utils" in parts[1:2] and not found:
+                found = [n for n in ("utils_tests",) if n in names]
+            # 2. the file's own name: deletion.py -> delete, delete_regress; fields/__init__.py -> model_fields
+            if not found and stem:
+                found = variants(stem) or [n for n in names if shares_stem(stem, n.split("_")[0])][:2]
             if not found:
                 # fall back to the test folders that mention the changed module most often
                 dotted = ".".join(p for p in parts if p != "__init__")
@@ -305,9 +332,20 @@ def related_tests(files):
                 found = sorted(counts, key=lambda n: (-counts[n], n))[:2]
             targets += [t for t in found if t not in targets]
         elif kind != "django":
-            stem = "_".join(p for p in parts[1:] if p != "__init__")
-            for cand in sorted(os.listdir(os.path.join(REPO, "tests"))) if os.path.isdir(os.path.join(REPO, "tests")) else []:
-                if cand.startswith("test_") and cand.endswith(".py") and stem and (stem in cand or parts[-1] in cand):
+            tests_dir = os.path.join(REPO, "tests")
+            if not os.path.isdir(tests_dir):
+                continue
+            words = [w for p in parts[1:] for w in p.split("_") if w and w != "__init__"]
+            scored = []
+            for cand in os.listdir(tests_dir):
+                if not (cand.startswith("test_") and cand.endswith(".py")):
+                    continue
+                cwords = cand[5:-3].split("_")
+                score = sum(any(word_match(w, c) for c in cwords) for w in words)
+                if score:
+                    scored.append((-score, len(cand), cand))
+            for _, _, cand in sorted(scored)[:3]:
+                if "tests/" + cand not in targets:
                     targets.append("tests/" + cand)
     return targets[:3]
 
