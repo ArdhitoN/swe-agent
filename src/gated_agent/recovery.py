@@ -30,8 +30,16 @@ class StuckDetector:
         self.steps_since_progress = 0
         self.level = 0
 
-    def record(self, tool: str, args: dict, output: str, diff: str, progress: bool) -> None:
-        """progress = an edit, a test run, a registered reproduction or a verify call."""
+    def record(self, tool: str, args: dict, output: str, diff: str, progress: bool, changed_files: bool = False) -> None:
+        """progress = an edit, a test run, a registered reproduction or a verify call.
+
+        changed_files = a file was successfully edited or created (repo or /tmp). Repeating a call
+        after changing a file is not a loop (e.g. editing the reproduction, then registering it again),
+        so the repeat history starts over.
+        """
+        if changed_files:
+            self.actions.clear()
+            self.outputs.clear()
         self.actions.append(_key(tool, args))
         self.outputs.append(_digest(output))
         digest = _digest(diff)
@@ -39,7 +47,12 @@ class StuckDetector:
             self.diff_history.append(digest)
         self.steps_since_progress = 0 if progress else self.steps_since_progress + 1
 
-    def reason(self) -> str | None:
+    def forget_code_history(self) -> None:
+        """After a rollback the code jumps back on purpose; that must not look like back-and-forth edits."""
+        self.diff_history = self.diff_history[-1:]
+
+    def reason(self, exploring: bool = False) -> str | None:
+        """exploring = still in the reading phase, where many steps without edits are normal."""
         if self.actions:
             last = self.actions[-1]
             if sum(a == last for a in self.actions) >= self.repeats:
@@ -49,7 +62,7 @@ class StuckDetector:
         h = self.diff_history
         if len(h) >= 3 and h[-1] == h[-3] and h[-1] != h[-2]:
             return "switching back and forth between the same two versions of the code"
-        if self.steps_since_progress >= self.idle_steps:
+        if not exploring and self.steps_since_progress >= self.idle_steps:
             return f"{self.steps_since_progress} steps without editing, testing or verifying"
         return None
 
