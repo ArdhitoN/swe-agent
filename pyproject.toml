@@ -8,6 +8,7 @@ dependencies = [
     "swebench==5.0.2",
     "pyyaml",
     "typer",
+    "mcp",  # litellm 1.106 imports it whenever a request includes tools; without it every agent crashes
 ]
 
 [project.optional-dependencies]
