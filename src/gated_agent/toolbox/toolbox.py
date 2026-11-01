@@ -169,8 +169,14 @@ def cmd_edit(path, old, new):
     if not old:
         return result("`old` is empty. Copy the exact text to replace (view the file first).", ok=False)
     count = text.count(old)
+    note = ""
     if count == 0:
-        return result("no exact match for `old` in %s. View the lines and copy them exactly (indentation too)." % path, ok=False)
+        shifted = indent_shifted_match(text, old, new)
+        if shifted is None:
+            return result("no exact match for `old` in %s. %s" % (path, closest_lines(text, old)), ok=False)
+        old, new, delta = shifted
+        count = 1
+        note = " (your `old` matched except for indentation; both were shifted by %+d spaces)" % delta
     if count > 1:
         lines = sorted({text.count("\n", 0, m.start()) + 1 for m in re.finditer(re.escape(old), text)})
         return result(
@@ -185,7 +191,55 @@ def cmd_edit(path, old, new):
         if problem:
             open(full, "w", encoding="utf-8").write(text)
             return result("edit undone, because " + problem, ok=False, reverted=True)
-    return result("edited %s:\n%s" % (path, snippet(new_text, index, len(new))), ok=True)
+    return result("edited %s%s:\n%s" % (path, note, snippet(new_text, index, len(new))), ok=True)
+
+
+def _indent(line):
+    return len(line) - len(line.lstrip(" "))
+
+
+def indent_shifted_match(text, old, new):
+    """If `old` matches exactly one block once every line is shifted by the same number of spaces,
+    return (actual old text, `new` shifted the same way, shift). Otherwise None."""
+    old_lines = old.split("\n")
+    lines = text.split("\n")
+    if not any(l.strip() for l in old_lines):
+        return None
+    hits = []
+    for start in range(len(lines) - len(old_lines) + 1):
+        block = lines[start:start + len(old_lines)]
+        if [l.strip() for l in block] != [l.strip() for l in old_lines]:
+            continue
+        deltas = {_indent(b) - _indent(o) for b, o in zip(block, old_lines) if o.strip()}
+        if len(deltas) == 1:
+            hits.append((start, deltas.pop()))
+    if len(hits) != 1:
+        return None
+    start, delta = hits[0]
+    actual = "\n".join(lines[start:start + len(old_lines)])
+    shifted_new = []
+    for l in new.split("\n"):
+        if not l.strip():
+            shifted_new.append(l)
+        elif delta >= 0:
+            shifted_new.append(" " * delta + l)
+        elif _indent(l) >= -delta:
+            shifted_new.append(l[-delta:])
+        else:
+            return None  # can't shift this line left far enough; let the model fix it
+    return actual, "\n".join(shifted_new), delta
+
+
+def closest_lines(text, old):
+    """Show where the first non-blank line of `old` appears (ignoring indentation), with exact text."""
+    first = next((l.strip() for l in old.split("\n") if l.strip()), "")
+    lines = text.split("\n")
+    where = [i for i, l in enumerate(lines) if first and l.strip() == first]
+    if not where:
+        return "View the lines and copy them exactly (indentation too)."
+    i = where[0]
+    shown = "\n".join("%6d  %s" % (j + 1, lines[j]) for j in range(i, min(len(lines), i + len(old.split("\n")) + 2)))
+    return "Its first line appears at line %d, but the following lines differ. Exact text there:\n%s" % (i + 1, shown)
 
 
 def cmd_create(path, content):
