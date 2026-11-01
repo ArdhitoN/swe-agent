@@ -83,6 +83,41 @@ def run_baseline(
 
 
 
+def _run_arm(arm: str, bugs: str, runs: int, first_run: int, keep_images: bool, expected_cost: float,
+             parallel: int = 1):
+    from lift_eval.config import load_experiment
+    from lift_eval.runners import run_ours as ro
+    from lift_eval.runners.schedule import run_schedule
+
+    cfg = load_experiment()
+    run_one = {"B": ro.run_ours, "C": ro.run_control, "D": ro.build_ablation}[arm]
+    n = runs or cfg["runs"]["B"]
+    names = [f"run_{k}" for k in range(first_run, first_run + n)]
+    run_schedule(cfg, _bug_list(bugs), names, run_one, lambda r, i: ro.run_dir(arm, r, i), expected_cost, keep_images,
+                 parallel=parallel)
+
+
+@app.command()
+def run_ours(bugs: str = "test", runs: int = 0, first_run: int = 1, keep_images: bool = False,
+             expected_cost: float = 0.5, parallel: int = 3):
+    """Arm B: our agent, graded with the official harness, one bug at a time (its runs in parallel)."""
+    _run_arm("B", bugs, runs, first_run, keep_images, expected_cost, parallel)
+
+
+@app.command()
+def run_control(bugs: str = "test", runs: int = 0, first_run: int = 1, keep_images: bool = False,
+                expected_cost: float = 0.3, parallel: int = 3):
+    """Arm C: our selector over the baseline's patches (needs 5 baseline runs)."""
+    _run_arm("C", bugs, runs, first_run, keep_images, expected_cost, parallel)
+
+
+@app.command()
+def run_ablation(bugs: str = "test", runs: int = 0, first_run: int = 1, keep_images: bool = False):
+    """Arm D: our agent's first attempt only (reuses Arm B; no API cost)."""
+    _run_arm("D", bugs, runs, first_run, keep_images, 0.0)
+
+
+
 @app.command()
 def leak_scan():
     """Scan every trajectory of every agent for commands that could reveal the fix."""
