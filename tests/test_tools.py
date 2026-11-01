@@ -114,3 +114,16 @@ def test_related_tests_sphinx_layout(tmp_path):
     assert _related(tmp_path, ["sphinx/domains/python.py"])[0] == "tests/test_domain_py.py"
     assert _related(tmp_path, ["sphinx/ext/autodoc/__init__.py"])[:2] == [
         "tests/test_ext_autodoc.py", "tests/test_ext_autodoc_configs.py"]
+
+
+def test_edit_fixes_a_constant_indentation_mistake(repo):
+    (repo / "pkg" / "mod.py").write_text("class K:\n    def m(self):\n        if True:\n            return 1\n")
+    text, data = toolbox(repo, "edit", path="pkg/mod.py", old="    if True:\n        return 1", new="    if True:\n        return 2")
+    assert data["ok"], text
+    assert "+4 spaces" in text
+    assert (repo / "pkg" / "mod.py").read_text().endswith("        if True:\n            return 2\n")
+
+
+def test_edit_shows_exact_text_when_lines_differ(repo):
+    text, data = toolbox(repo, "edit", path="pkg/mod.py", old="def add(a, b):\n    return a * b", new="x")
+    assert not data["ok"] and "Exact text there" in text and "return a - b" in text

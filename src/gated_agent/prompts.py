@@ -19,6 +19,9 @@ Fix this issue in the repository at /testbed by changing non-test source files.
    or `sys.exit(1)`). For Django, configure settings inside the script
    (`settings.configure(...)` then `django.setup()`). Then call `register_repro` with its path.
    It is run against the original code and must fail there.
+   **Reproduce the behaviour exactly as the issue describes it**: the same input and the same entry point
+   the user used (the same directive, field, API call or command), not an internal function you guessed.
+   A script that calls the wrong function can "pass" while the real bug remains.
 3. **Fix it** with `edit` (one unique exact replacement per call). Keep the change small and general,
    consistent with the surrounding code. Never edit tests.
 4. **Check it** with `verify`: your reproduction must pass and related existing tests must not break.
@@ -53,6 +56,8 @@ Your only job: write a standalone script under /tmp (for example /tmp/repro.py) 
 issue in /testbed. It must exit with a NON-ZERO code while the bug is present and exit 0 once the bug is
 fixed (use `assert` or `sys.exit(1)`). For Django, configure settings inside the script
 (`settings.configure(...)` then `django.setup()`). Do not change any repository files.
+Reproduce the behaviour exactly as the issue describes it: the same input and the same entry point the user
+used (the same directive, field, API call or command), not an internal function you guessed.
 When the script fails on the current code because of the bug, call `register_repro` with its path.
 Budget: about {{step_limit}} tool-using replies."""
 
